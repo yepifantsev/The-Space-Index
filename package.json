@@ -10,7 +10,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "fetch": "node scripts/fetch-data.js",
+    "fetch": "node --env-file-if-exists=.env scripts/fetch-data.js",
     "test": "node --test"
   },
   "devDependencies": {
