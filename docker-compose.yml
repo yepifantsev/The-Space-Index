@@ -1,0 +1,13 @@
+services:
+  web:
+    build: .
+    ports:
+      - "5173:5173"
+    volumes:
+      - .:/app
+      # Keep the container's node_modules instead of the host's.
+      - /app/node_modules
+    environment:
+      - SITE_LAT
+      - SITE_LON
+      - SITE_LOCATION_NAME
