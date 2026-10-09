@@ -67,6 +67,56 @@ a {
   margin: 0;
 }
 
+.kp-chart {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: 1rem;
+  overflow: visible;
+  font-family: inherit;
+}
+
+.kp-grid {
+  stroke: #343b50;
+  stroke-width: 1;
+}
+
+.kp-grid-vertical {
+  stroke-dasharray: 2 5;
+  opacity: 0.65;
+}
+
+.kp-axis {
+  stroke: #798198;
+  stroke-width: 1;
+}
+
+.kp-tick {
+  fill: #aab1c2;
+  font-size: 11px;
+}
+
+.kp-axis-label {
+  fill: #d1d5df;
+  font-size: 12px;
+}
+
+.kp-now {
+  stroke: #f4f5f7;
+  stroke-width: 1.5;
+  stroke-dasharray: 4 3;
+}
+
+.kp-now-label {
+  fill: #f4f5f7;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.kp-bar {
+  shape-rendering: crispEdges;
+}
+
 .meta {
   font-size: 0.8rem;
   margin-bottom: 0;
