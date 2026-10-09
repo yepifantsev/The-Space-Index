@@ -64,3 +64,12 @@ test('writes a placeholder when a source fails with no previous data', async () 
   assert.equal(json.updatedAt, null)
   assert.equal(json.error, 'boom')
 })
+
+test('toUtcIso normalizes offset-less UTC timestamps', async () => {
+  const { toUtcIso } = await import('../scripts/lib/time.js')
+  assert.equal(toUtcIso('2026-01-01 00:00:00'), '2026-01-01T00:00:00Z')
+  assert.equal(toUtcIso('2026-01-01T18:00'), '2026-01-01T18:00Z')
+  assert.equal(toUtcIso('2026-01-01T18:00:00Z'), '2026-01-01T18:00:00Z')
+  assert.equal(toUtcIso('2026-01-01T18:00:00+02:00'), '2026-01-01T18:00:00+02:00')
+  assert.equal(toUtcIso(null), null)
+})

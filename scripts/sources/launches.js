@@ -1,14 +1,14 @@
 import { fetchJson } from '../lib/http.js'
 
 // The Space Devs Launch Library 2 (free tier is rate-limited to ~15 req/hour).
-const URL = 'https://ll.thespacedevs.com/2.3.0/launches/upcoming/?limit=10'
+const ENDPOINT = 'https://ll.thespacedevs.com/2.3.0/launches/upcoming/?limit=10'
 
 export default {
   name: 'launches',
   title: 'Upcoming Launches',
   attribution: { label: 'The Space Devs', url: 'https://thespacedevs.com/' },
   async fetch() {
-    const raw = await fetchJson(URL)
+    const raw = await fetchJson(ENDPOINT)
     return {
       launches: (raw.results ?? []).map((l) => ({
         id: l.id,
