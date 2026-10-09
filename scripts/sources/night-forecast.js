@@ -15,7 +15,7 @@ export default {
     const url =
       'https://api.open-meteo.com/v1/forecast' +
       `?latitude=${lat}&longitude=${lon}` +
-      '&hourly=cloud_cover,visibility,is_day' +
+      '&hourly=cloud_cover,cloud_cover_high,cloud_cover_mid,cloud_cover_low,visibility,is_day' +
       '&daily=sunrise,sunset&timezone=UTC&forecast_days=3'
     const raw = await fetchJson(url)
     const h = raw.hourly ?? {}
@@ -23,11 +23,20 @@ export default {
     const hours = (h.time ?? []).map((time, i) => ({
       time: toUtcIso(time),
       cloudCover: h.cloud_cover?.[i] ?? null,
+      cloudCoverHigh: h.cloud_cover_high?.[i] ?? null,
+      cloudCoverMid: h.cloud_cover_mid?.[i] ?? null,
+      cloudCoverLow: h.cloud_cover_low?.[i] ?? null,
       visibility: h.visibility?.[i] ?? null,
       isDay: h.is_day?.[i] === 1,
     }))
     // Only upcoming hours: keep the current hour, drop anything that has already passed.
     const upcoming = hours.filter((x) => Date.parse(x.time) > nowMs - 3600 * 1000)
+    const firstNightHour = upcoming.findIndex((x) => !x.isDay)
+    const nightHours = []
+    for (const hour of upcoming.slice(firstNightHour < 0 ? upcoming.length : firstNightHour)) {
+      if (hour.isDay) break
+      nightHours.push(hour)
+    }
     const sunsets = (raw.daily?.sunset ?? []).map(toUtcIso)
     const sunrises = (raw.daily?.sunrise ?? []).map(toUtcIso)
     const sunset = sunsets.find((t) => Date.parse(t) > nowMs) ?? null
@@ -36,7 +45,7 @@ export default {
       location: { name: locationName, lat, lon },
       sunset,
       sunrise,
-      nightHours: upcoming.filter((x) => !x.isDay).slice(0, 12),
+      nightHours,
     }
   },
 }

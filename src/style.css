@@ -117,6 +117,46 @@ a {
   shape-rendering: crispEdges;
 }
 
+.night-chart-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+  margin-top: 0.75rem;
+}
+
+.night-chart {
+  display: block;
+  width: 100%;
+  max-width: 560px;
+  height: auto;
+  font-family: inherit;
+}
+
+.night-row-label,
+.night-time-label,
+.night-legend-title {
+  fill: #c4cad5;
+  font-size: 12px;
+}
+
+.night-legend-title {
+  font-weight: 600;
+}
+
+.night-grid {
+  stroke: #343b50;
+  stroke-width: 1;
+}
+
+.night-grid-vertical {
+  stroke-dasharray: 2 5;
+  opacity: 0.75;
+}
+
+.night-cell {
+  stroke: #151a2d;
+  stroke-width: 1;
+}
+
 .meta {
   font-size: 0.8rem;
   margin-bottom: 0;
