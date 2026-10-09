@@ -1,0 +1,19 @@
+{
+  "name": "the-space-index",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "fetch": "node scripts/fetch-data.js",
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "vite": "^8.3.0"
+  }
+}

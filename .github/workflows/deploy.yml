@@ -1,0 +1,76 @@
+name: Fetch data, build and deploy
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    # Several times a day (UTC).
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm test
+
+      # Restore last known good data so a failing source keeps its previous values.
+      - name: Restore previous data
+        uses: actions/cache/restore@v4
+        with:
+          path: data/*.json
+          key: space-data-${{ github.run_id }}
+          restore-keys: space-data-
+
+      - name: Fetch data
+        run: npm run fetch
+        env:
+          SITE_LAT: ${{ vars.SITE_LAT }}
+          SITE_LON: ${{ vars.SITE_LON }}
+          SITE_LOCATION_NAME: ${{ vars.SITE_LOCATION_NAME }}
+
+      - name: Save data
+        uses: actions/cache/save@v4
+        with:
+          path: data/*.json
+          key: space-data-${{ github.run_id }}
+
+      - id: pages
+        uses: actions/configure-pages@v5
+
+      - name: Build
+        run: npm run build
+        env:
+          BASE_PATH: ${{ steps.pages.outputs.base_path }}/
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
