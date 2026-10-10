@@ -28,5 +28,5 @@ export function isSafeUrl(value) {
 export function formatDate(value) {
   if (!value) return '—'
   const date = new Date(value)
-  return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleString()
+  return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleTimeString()
 }

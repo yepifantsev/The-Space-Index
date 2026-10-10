@@ -15,11 +15,11 @@ function renderKpChart(readings = []) {
   const now = Date.now()
   const start = now - KP_WINDOW_MS
   const width = 760
-  const height = 316
+  const height = 416
   const left = 46
   const right = 748
   const top = 20
-  const bottom = 252
+  const bottom = 352
   const plotWidth = right - left
   const plotHeight = bottom - top
   const x = (time) => left + ((time - start) / KP_WINDOW_MS) * plotWidth
@@ -86,7 +86,7 @@ function renderKpChart(readings = []) {
     svgElement('line', { x1: right, x2: right, y1: top, y2: bottom, class: 'kp-now' }),
     svgElement('text', { x: right - 4, y: top + 11, class: 'kp-now-label', 'text-anchor': 'end' }, 'NOW'),
     svgElement('text', { x: 15, y: top + plotHeight / 2, class: 'kp-axis-label', 'text-anchor': 'middle', transform: `rotate(-90 15 ${top + plotHeight / 2})` }, 'Kp'),
-    svgElement('text', { x: (left + right) / 2, y: 302, class: 'kp-axis-label', 'text-anchor': 'middle' }, 'Universal Time (UTC)'),
+    svgElement('text', { x: (left + right) / 2, y: 402, class: 'kp-axis-label', 'text-anchor': 'middle' }, 'Universal Time (UTC)'),
   )
 
   return chart
@@ -94,26 +94,26 @@ function renderKpChart(readings = []) {
 
 function cloudColor(value) {
   if (!Number.isFinite(value)) return '#343b50'
-  if (value <= 10) return '#087a62'
-  if (value <= 30) return '#32836d'
-  if (value <= 50) return '#829887'
-  if (value <= 75) return '#b5b9b7'
-  return '#e5e8e7'
+  if (value <= 10) return '#061160'
+  if (value <= 30) return '#2a288b'
+  if (value <= 50) return '#49418c'
+  if (value <= 75) return '#717199'
+  return '#9595a7'
 }
 
 function renderNightSkyChart(hours = []) {
   const rows = [
-    { label: 'Total cloud', key: 'cloudCover' },
-    { label: 'High cloud', key: 'cloudCoverHigh' },
-    { label: 'Mid cloud', key: 'cloudCoverMid' },
-    { label: 'Low cloud', key: 'cloudCoverLow' },
+    { label: 'Total', key: 'cloudCover' },
+    { label: 'High', key: 'cloudCoverHigh' },
+    { label: 'Mid', key: 'cloudCoverMid' },
+    { label: 'Low', key: 'cloudCoverLow' },
   ]
   const validHours = hours.filter((hour) => Number.isFinite(Date.parse(hour.time)))
   if (validHours.length === 0) return h('p', { class: 'muted' }, 'No nighttime forecast available.')
 
   const width = 400
   const height = 254
-  const left = 80
+  const left = 40
   const right = 396
   const top = 30
   const rowHeight = 36
@@ -174,7 +174,7 @@ function renderNightSkyChart(hours = []) {
     { label: '100%', value: 100 },
   ]
   legend.forEach((entry, index) => {
-    const legendX = left + 90 + index * 44
+    const legendX = left + 90 + index * 50
     chart.append(
       svgElement('rect', { x: legendX, y: legendY, width: 14, height: 12, rx: 2, fill: cloudColor(entry.value) }),
       svgElement('text', { x: legendX + 19, y: legendY + 10, class: 'night-time-label' }, entry.label),
@@ -191,8 +191,8 @@ export const renderers = {
     return h(
       'div',
       {},
-      h('p', { class: 'big' }, latest ? `Kp ${latest.kp}` : 'No Kp reading'),
-      latest && h('p', { class: 'muted' }, `as of ${formatDate(latest.time)}`),
+      h('span', { class: 'big big-after' }, latest ? `Kp ${latest.kp}` : 'No Kp reading'),
+      latest && h('span', { class: 'muted' }, `as of ${formatDate(latest.time)}`),
       renderKpChart(data.kp),
     )
   },
