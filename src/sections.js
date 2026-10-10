@@ -92,8 +92,15 @@ function renderKpChart(readings = []) {
   return chart
 }
 
-function cloudColor(value) {
+function cloudColor(value, isDay) {
   if (!Number.isFinite(value)) return '#343b50'
+  if (isDay) {
+    const amount = Math.max(0, Math.min(100, value)) / 100
+    const clear = [255, 242, 0]
+    const overcast = [119, 117, 94]
+    const channels = clear.map((channel, index) => Math.round(channel + (overcast[index] - channel) * amount))
+    return `rgb(${channels.join(', ')})`
+  }
   if (value <= 10) return '#061160'
   if (value <= 30) return '#2a288b'
   if (value <= 50) return '#49418c'
@@ -103,20 +110,19 @@ function cloudColor(value) {
 
 function renderNightSkyChart(hours = []) {
   const rows = [
-    { label: 'Total', key: 'cloudCover' },
     { label: 'High', key: 'cloudCoverHigh' },
     { label: 'Mid', key: 'cloudCoverMid' },
     { label: 'Low', key: 'cloudCoverLow' },
   ]
   const validHours = hours.filter((hour) => Number.isFinite(Date.parse(hour.time)))
-  if (validHours.length === 0) return h('p', { class: 'muted' }, 'No nighttime forecast available.')
+  if (validHours.length === 0) return h('p', { class: 'muted' }, 'No hourly forecast available.')
 
   const width = 400
-  const height = 254
+  const height = 244
   const left = 40
   const right = 396
-  const top = 30
-  const rowHeight = 36
+  const top = 0
+  const rowHeight = 46
   const plotWidth = right - left
   const start = Date.parse(validHours[0].time)
   const end = Date.parse(validHours.at(-1).time) + 60 * 60 * 1000
@@ -125,9 +131,9 @@ function renderNightSkyChart(hours = []) {
     class: 'night-chart',
     viewBox: `0 0 ${width} ${height}`,
     role: 'img',
-    'aria-label': `Hourly cloud cover forecast for ${validHours.length} hours of night. Rows show total, high, middle, and low clouds. Times are UTC.`,
+    'aria-label': `Hourly cloud cover forecast for ${validHours.length} hours. Daylight uses yellow shades and nighttime uses blue shades. Rows show high, middle, and low clouds. Times are UTC.`,
   })
-  chart.append(svgElement('title', {}, 'Night sky cloud-cover heatmap'))
+  chart.append(svgElement('title', {}, '24-hour cloud-cover heatmap'))
 
   rows.forEach((row, rowIndex) => {
     const rowY = top + rowIndex * rowHeight
@@ -147,7 +153,7 @@ function renderNightSkyChart(hours = []) {
         width: Math.max(1, x(hourEnd) - x(hourStart) - 2),
         height: rowHeight - 6,
         rx: 2,
-        fill: cloudColor(value),
+        fill: cloudColor(value, hour.isDay),
         class: 'night-cell',
       })
       const label = Number.isFinite(value) ? `${value}%` : 'No data'
@@ -164,22 +170,33 @@ function renderNightSkyChart(hours = []) {
     })
   })
 
-  const legendY = top + rows.length * rowHeight + 43
-  chart.append(svgElement('text', { x: left, y: legendY + 10, class: 'night-legend-title' }, 'Cloud cover'))
-  const legend = [
-    { label: '0%', value: 0 },
-    { label: '25%', value: 25 },
-    { label: '50%', value: 50 },
-    { label: '75%', value: 75 },
-    { label: '100%', value: 100 },
-  ]
-  legend.forEach((entry, index) => {
-    const legendX = left + 90 + index * 50
-    chart.append(
-      svgElement('rect', { x: legendX, y: legendY, width: 14, height: 12, rx: 2, fill: cloudColor(entry.value) }),
-      svgElement('text', { x: legendX + 19, y: legendY + 10, class: 'night-time-label' }, entry.label),
-    )
+  const defs = svgElement('defs')
+  const dayGradient = svgElement('linearGradient', { id: 'day-cloud-scale', x1: '0%', x2: '100%', y1: '0%', y2: '0%' })
+  dayGradient.append(
+    svgElement('stop', { offset: '0%', 'stop-color': cloudColor(0, true) }),
+    svgElement('stop', { offset: '100%', 'stop-color': cloudColor(100, true) }),
+  )
+  const nightGradient = svgElement('linearGradient', { id: 'night-cloud-scale', x1: '0%', x2: '100%', y1: '0%', y2: '0%' })
+  ;[0, 10, 30, 50, 75, 100].forEach((value) => {
+    nightGradient.append(svgElement('stop', { offset: `${value}%`, 'stop-color': cloudColor(value, false) }))
   })
+  defs.append(dayGradient, nightGradient)
+  chart.append(defs)
+
+  const legendY = top + rows.length * rowHeight + 53
+  const rampX = 102
+  const rampWidth = 247
+  chart.append(
+    svgElement('text', { x: left, y: legendY - 10, class: 'night-legend-title' }, 'Cloud cover'),
+    svgElement('text', { x: left, y: legendY + 12, class: 'night-time-label' }, 'Day'),
+    svgElement('text', { x: left, y: legendY + 36, class: 'night-time-label' }, 'Night'),
+    svgElement('text', { x: 95, y: legendY + 12, class: 'night-time-label', 'text-anchor': 'end' }, '0%'),
+    svgElement('rect', { x: rampX, y: legendY, width: rampWidth, height: 12, rx: 2, fill: 'url(#day-cloud-scale)' }),
+    svgElement('text', { x: 355, y: legendY + 12, class: 'night-time-label' }, '100%'),
+    svgElement('text', { x: 95, y: legendY + 36, class: 'night-time-label', 'text-anchor': 'end' }, '0%'),
+    svgElement('rect', { x: rampX, y: legendY + 24, width: rampWidth, height: 12, rx: 2, fill: 'url(#night-cloud-scale)' }),
+    svgElement('text', { x: 355, y: legendY + 36, class: 'night-time-label' }, '100%'),
+  )
 
   return h('div', { class: 'night-chart-wrap' }, chart)
 }
@@ -216,8 +233,10 @@ export const renderers = {
     h(
       'div',
       {},
-      h('p', { class: 'muted' }, `${data.location.name} · sunset ${formatDate(data.sunset)}`),
-      renderNightSkyChart(data.nightHours),
+      h('div', { class: 'muted' }, `Sunrise ${formatDate(data.sunrise)} · Sunset ${formatDate(data.sunset)}`),
+      (data.moonrise || data.moonset) &&
+        h('div', { class: 'muted' }, `Moonrise ${formatDate(data.moonrise)} · Moonset ${formatDate(data.moonset)}`),
+      renderNightSkyChart(data.forecastHours ?? data.nightHours),
     ),
 
   satellites: (data) =>

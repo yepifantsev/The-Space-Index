@@ -16,7 +16,7 @@ export default {
       'https://api.open-meteo.com/v1/forecast' +
       `?latitude=${lat}&longitude=${lon}` +
       '&hourly=cloud_cover,cloud_cover_high,cloud_cover_mid,cloud_cover_low,visibility,is_day' +
-      '&daily=sunrise,sunset&timezone=UTC&forecast_days=3'
+      '&daily=sunrise,sunset,moonrise,moonset&timezone=UTC&forecast_days=3'
     const raw = await fetchJson(url)
     const h = raw.hourly ?? {}
     const nowMs = now.getTime()
@@ -31,21 +31,22 @@ export default {
     }))
     // Only upcoming hours: keep the current hour, drop anything that has already passed.
     const upcoming = hours.filter((x) => Date.parse(x.time) > nowMs - 3600 * 1000)
-    const firstNightHour = upcoming.findIndex((x) => !x.isDay)
-    const nightHours = []
-    for (const hour of upcoming.slice(firstNightHour < 0 ? upcoming.length : firstNightHour)) {
-      if (hour.isDay) break
-      nightHours.push(hour)
-    }
+    const forecastHours = upcoming.slice(0, 24)
     const sunsets = (raw.daily?.sunset ?? []).map(toUtcIso)
     const sunrises = (raw.daily?.sunrise ?? []).map(toUtcIso)
+    const moonrises = (raw.daily?.moonrise ?? []).map(toUtcIso)
+    const moonsets = (raw.daily?.moonset ?? []).map(toUtcIso)
     const sunset = sunsets.find((t) => Date.parse(t) > nowMs) ?? null
     const sunrise = sunrises.find((t) => Date.parse(t) > Date.parse(sunset ?? now.toISOString())) ?? null
+    const moonrise = moonrises.find((t) => Date.parse(t) > nowMs) ?? null
+    const moonset = moonsets.find((t) => Date.parse(t) > nowMs) ?? null
     return {
       location: { name: locationName, lat, lon },
       sunset,
       sunrise,
-      nightHours,
+      moonrise,
+      moonset,
+      forecastHours,
     }
   },
 }
