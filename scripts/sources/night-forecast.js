@@ -16,7 +16,7 @@ export default {
       'https://api.open-meteo.com/v1/forecast' +
       `?latitude=${lat}&longitude=${lon}` +
       '&hourly=cloud_cover,cloud_cover_high,cloud_cover_mid,cloud_cover_low,visibility,is_day' +
-      '&daily=sunrise,sunset,moonrise,moonset&timezone=UTC&forecast_days=3'
+      '&daily=sunrise,sunset,moonrise,moonset&timezone=UTC&past_hours=24&forecast_hours=72'
     const raw = await fetchJson(url)
     const h = raw.hourly ?? {}
     const nowMs = now.getTime()
@@ -29,9 +29,8 @@ export default {
       visibility: h.visibility?.[i] ?? null,
       isDay: h.is_day?.[i] === 1,
     }))
-    // Only upcoming hours: keep the current hour, drop anything that has already passed.
-    const upcoming = hours.filter((x) => Date.parse(x.time) > nowMs - 3600 * 1000)
-    const forecastHours = upcoming.slice(0, 24)
+    // Keep the prior 24 hours and current forecast horizon for chart paging.
+    const forecastHours = hours.filter((x) => Date.parse(x.time) > nowMs - 25 * 3600 * 1000)
     const sunsets = (raw.daily?.sunset ?? []).map(toUtcIso)
     const sunrises = (raw.daily?.sunrise ?? []).map(toUtcIso)
     const moonrises = (raw.daily?.moonrise ?? []).map(toUtcIso)

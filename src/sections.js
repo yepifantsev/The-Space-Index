@@ -108,25 +108,20 @@ function cloudColor(value, isDay) {
   return '#9595a7'
 }
 
-function renderNightSkyChart(hours = []) {
+function renderNightSkyWindow(validHours, start) {
   const rows = [
     { label: 'High', key: 'cloudCoverHigh' },
     { label: 'Mid', key: 'cloudCoverMid' },
     { label: 'Low', key: 'cloudCoverLow' },
   ]
-  const validHours = hours.filter((hour) => Number.isFinite(Date.parse(hour.time)))
-  if (validHours.length === 0) return h('p', { class: 'muted' }, 'No hourly forecast available.')
-
   const width = 400
   const height = 244
   const left = 40
   const right = 396
   const top = 0
   const rowHeight = 46
-  const plotWidth = right - left
-  const start = Date.parse(validHours[0].time)
-  const end = Date.parse(validHours.at(-1).time) + 60 * 60 * 1000
-  const x = (time) => left + ((time - start) / (end - start)) * plotWidth
+  const end = start + 24 * 60 * 60 * 1000
+  const x = (time) => left + ((time - start) / (end - start)) * (right - left)
   const chart = svgElement('svg', {
     class: 'night-chart',
     viewBox: `0 0 ${width} ${height}`,
@@ -170,6 +165,23 @@ function renderNightSkyChart(hours = []) {
     })
   })
 
+  const currentHourStart = Math.floor(Date.now() / (60 * 60 * 1000)) * 60 * 60 * 1000
+  const currentHourIndex = validHours.findIndex((hour) => Date.parse(hour.time) === currentHourStart)
+  if (currentHourIndex >= 0) {
+    const cellX = x(currentHourStart) + 1
+    const cellWidth = Math.max(1, x(currentHourStart + 60 * 60 * 1000) - x(currentHourStart) - 2)
+    rows.forEach((row, rowIndex) => {
+      chart.append(svgElement('rect', {
+        x: cellX,
+        y: rowIndex * rowHeight + 3,
+        width: cellWidth,
+        height: rowHeight - 6,
+        rx: 2,
+        class: 'night-current-hour',
+      }))
+    })
+  }
+
   const defs = svgElement('defs')
   const dayGradient = svgElement('linearGradient', { id: 'day-cloud-scale', x1: '0%', x2: '100%', y1: '0%', y2: '0%' })
   dayGradient.append(
@@ -198,7 +210,65 @@ function renderNightSkyChart(hours = []) {
     svgElement('text', { x: 355, y: legendY + 36, class: 'night-time-label' }, '100%'),
   )
 
-  return h('div', { class: 'night-chart-wrap' }, chart)
+  return chart
+}
+
+function renderNightSkyChart(hours = []) {
+  const validHours = hours
+    .filter((hour) => Number.isFinite(Date.parse(hour.time)))
+    .sort((first, second) => Date.parse(first.time) - Date.parse(second.time))
+  if (validHours.length === 0) return h('p', { class: 'muted' }, 'No hourly forecast available.')
+
+  const windowSize = 24
+  const hourMs = 60 * 60 * 1000
+  const currentHourIndex = validHours.findIndex((hour) => Date.parse(hour.time) >= Date.now() - hourMs)
+  let windowStart = currentHourIndex < 0 ? 0 : currentHourIndex
+  const previous = h('button', {
+    class: 'night-chart-nav',
+    type: 'button',
+    title: 'Previous 24 hours',
+    'aria-label': 'Previous 24 hours',
+  }, '‹')
+  const next = h('button', {
+    class: 'night-chart-nav',
+    type: 'button',
+    title: 'Next 24 hours',
+    'aria-label': 'Next 24 hours',
+  }, '›')
+  const range = h('span', { class: 'night-chart-range', 'aria-live': 'polite' })
+  const chartHost = h('div', { class: 'night-chart-host' })
+  const controls = h('div', { class: 'night-chart-controls' }, previous, range, next)
+
+  const formatUtc = (value) => {
+    const date = new Date(value)
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0')
+    const day = String(date.getUTCDate()).padStart(2, '0')
+    const hour = String(date.getUTCHours()).padStart(2, '0')
+    return `${month}/${day} ${hour}Z`
+  }
+
+  function updateWindow() {
+    const windowHours = validHours.slice(windowStart, windowStart + windowSize)
+    const windowStartTime = Date.parse(windowHours[0].time)
+    const windowEndTime = Math.min(windowStartTime + windowSize * hourMs, Date.parse(windowHours.at(-1).time) + hourMs)
+    previous.disabled = windowStart === 0
+    next.disabled = windowStart + windowSize >= validHours.length
+    range.textContent = `${formatUtc(windowStartTime)} - ${formatUtc(windowEndTime)}`
+    chartHost.replaceChildren(renderNightSkyWindow(windowHours, windowStartTime))
+  }
+
+  previous.addEventListener('click', () => {
+    windowStart = Math.max(0, windowStart - windowSize)
+    updateWindow()
+  })
+  next.addEventListener('click', () => {
+    if (windowStart + windowSize >= validHours.length) return
+    windowStart += windowSize
+    updateWindow()
+  })
+  updateWindow()
+
+  return h('div', { class: 'night-chart-wrap' }, controls, chartHost)
 }
 
 // One renderer per data source (keyed by source name). Each receives the `data` field of the JSON file.
