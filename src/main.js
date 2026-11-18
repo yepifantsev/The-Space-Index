@@ -18,4 +18,4 @@ if (sources.length === 0) {
   app.append(...sources.map(renderSection))
 }
 
-document.querySelector('#build-time').textContent = `Built ${new Date(__BUILD_TIME__).toLocaleString()}.`
+document.querySelector('#build-time').textContent = `Built ${new Date(__BUILD_TIME__).toLocaleString(undefined, { hour: 'numeric', minute: '2-digit' })}.`

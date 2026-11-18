@@ -62,9 +62,171 @@ a {
   padding-left: 1.1rem;
 }
 
+#launches {
+  box-sizing: border-box;
+  height: 390px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+#launches ul {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
 .big {
   font-size: 2rem;
   margin: 0;
+}
+
+.big-after { margin-right: 0.5rem; }
+
+.kp-chart {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: 1rem;
+  overflow: visible;
+  font-family: inherit;
+}
+
+.kp-grid {
+  stroke: #343b50;
+  stroke-width: 1;
+}
+
+.kp-grid-vertical {
+  stroke-dasharray: 2 5;
+  opacity: 0.65;
+}
+
+.kp-axis {
+  stroke: #798198;
+  stroke-width: 1;
+}
+
+.kp-tick {
+  fill: #aab1c2;
+  font-size: 16px;
+}
+
+.kp-axis-label {
+  fill: #d1d5df;
+  font-size: 18px;
+}
+
+.kp-now {
+  stroke: #f4f5f7;
+  stroke-width: 1.5;
+  stroke-dasharray: 4 3;
+}
+
+.kp-now-label {
+  fill: #f4f5f7;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.kp-bar {
+  shape-rendering: crispEdges;
+}
+
+.night-chart-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+  margin-top: 0.75rem;
+}
+
+.night-chart-controls {
+  display: grid;
+  grid-template-columns: 2.25rem minmax(0, 1fr) 2.25rem;
+  align-items: center;
+  gap: 0.5rem;
+  max-width: 560px;
+  margin-bottom: 0.35rem;
+}
+
+.night-chart-nav {
+  width: 2.25rem;
+  height: 2rem;
+  padding: 0;
+  border: 1px solid #343b50;
+  border-radius: 4px;
+  background: #20263a;
+  color: #e6e8f0;
+  font: inherit;
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.night-chart-nav:hover:not(:disabled) {
+  background: #303951;
+}
+
+.night-chart-nav:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.night-chart-nav:focus-visible {
+  outline: 2px solid #8ab4ff;
+  outline-offset: 2px;
+}
+
+.night-chart-range {
+  color: #c4cad5;
+  font-size: 0.8rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.night-chart-host {
+  max-width: 560px;
+}
+
+.night-chart {
+  display: block;
+  width: 100%;
+  max-width: 560px;
+  height: auto;
+  font-family: inherit;
+}
+
+.night-row-label,
+.night-time-label,
+.night-legend-title {
+  fill: #c4cad5;
+  font-size: 12px;
+}
+
+.night-legend-title {
+  font-weight: 600;
+}
+
+.night-grid {
+  stroke: #343b50;
+  stroke-width: 1;
+}
+
+.night-grid-vertical {
+  stroke-dasharray: 2 5;
+  opacity: 0.75;
+}
+
+.night-cell {
+  stroke: #151a2d;
+  stroke-width: 1;
+}
+
+.night-current-hour {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 2;
+  pointer-events: none;
 }
 
 .meta {

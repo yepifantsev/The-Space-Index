@@ -52,7 +52,9 @@ npm test
 
 ### Configuration
 
-The night sky forecast location is set with environment variables (defaults to Greenwich, UK):
+The night sky forecast location is set with environment variables (defaults to Greenwich, UK).
+For local fetches, put these in `.env`; `npm run fetch` loads that file automatically.
+Variables already set in the shell or CI take precedence.
 
 | Variable             | Example         |
 | -------------------- | --------------- |
