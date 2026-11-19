@@ -6,7 +6,7 @@ import { toUtcIso } from '../lib/time.js'
 // Times are requested in UTC and stored as ISO strings so browsers display them correctly.
 export default {
   name: 'night-forecast',
-  title: 'Cloud Cover Forecast',
+  title: 'Cloud Cover',
   attribution: { label: 'Open-Meteo', url: 'https://open-meteo.com/' },
   async fetch({ now = new Date() } = {}) {
     const lat = Number(process.env.SITE_LAT || 51.4769)

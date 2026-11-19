@@ -280,173 +280,6 @@ function renderNightSkyChart(hours = []) {
   return h('div', { class: 'night-chart-wrap' }, controls, chartHost)
 }
 
-function transparencyDetails(rating) {
-  const value = Number(rating)
-  if (value === 1) return { extinction: '< 0.30', description: 'Exceptional (crystal clear, dry air)' }
-  if (value === 2) return { extinction: '0.30 – 0.40', description: 'Very good' }
-  if (value === 3) return { extinction: '0.40 – 0.50', description: 'Good' }
-  if (value === 4) return { extinction: '0.50 – 0.60', description: 'Above average' }
-  if (value === 5) return { extinction: '0.60 – 0.70', description: 'Average' }
-  if (value === 6) return { extinction: '0.70 – 0.85', description: 'Below average (noticeable haze)' }
-  if (value === 7) return { extinction: '0.85 – 1.00', description: 'Poor (heavy moisture/haze)' }
-  if (value === 8) return { extinction: '> 1.00', description: 'Very poor (murky/opaque air)' }
-  return { extinction: 'Unknown', description: 'No transparency forecast' }
-}
-
-function transparencyColor(rating) {
-  if (!Number.isFinite(rating)) return '#343b50'
-  const clamped = Math.max(1, Math.min(8, rating))
-  const navy = [6, 22, 70]
-  const gray = [170, 170, 170]
-  const amount = (clamped - 1) / 7
-  const channels = navy.map((channel, i) => Math.round(channel + (gray[i] - channel) * amount))
-  return `rgb(${channels.join(', ')})`
-}
-
-function dewDetails(spread) {
-  if (!Number.isFinite(spread)) return { text: 'No data', color: '#343b50', fahrenheit: null }
-  if (spread > 10) return { text: 'Bone dry', color: '#061160', fahrenheit: spread * 9 / 5 }
-  if (spread >= 6) return { text: 'Safe', color: '#4369a5', fahrenheit: spread * 9 / 5 }
-  if (spread >= 3) return { text: 'Dew warning', color: '#78a9c8', fahrenheit: spread * 9 / 5 }
-  if (spread >= 1) return { text: 'Heavy dew & mist', color: '#e6a04a', fahrenheit: spread * 9 / 5 }
-  return { text: 'Saturation / Fog', color: '#d66b63', fahrenheit: spread * 9 / 5 }
-}
-
-function windColor(speed) {
-  if (!Number.isFinite(speed)) return '#343b50'
-  if (speed <= 5) return '#061160'
-  if (speed <= 11) return '#4369a5'
-  if (speed <= 17) return '#78a9c8'
-  return '#d66b63'
-}
-
-function renderObservingConditionsWindow(hours, start) {
-  const rows = [
-    { label: 'Transparency', key: 'transparency' },
-    { label: 'Dew spread', key: 'dewSpread' },
-    { label: 'Wind', key: 'windSpeed' },
-  ]
-  const width = 400
-  const height = 244
-  const left = 70
-  const right = 396
-  const top = 0
-  const rowHeight = 46
-  const end = start + 24 * 60 * 60 * 1000
-  const x = (time) => left + ((time - start) / (end - start)) * (right - left)
-  const chart = svgElement('svg', {
-    class: 'night-chart',
-    viewBox: `0 0 ${width} ${height}`,
-    role: 'img',
-    'aria-label': 'Hourly transparency, dew point spread, and wind forecast.',
-  })
-  chart.append(svgElement('title', {}, '24-hour transparency, dew, and wind heatmap'))
-
-  rows.forEach((row, rowIndex) => {
-    const rowY = top + rowIndex * rowHeight
-    chart.append(
-      svgElement('text', { x: left - 10, y: rowY + 22, class: 'night-row-label', 'text-anchor': 'end' }, row.label),
-      svgElement('line', { x1: left, x2: right, y1: rowY + rowHeight, y2: rowY + rowHeight, class: 'night-grid' }),
-    )
-
-    hours.forEach((hour) => {
-      const hourStart = Date.parse(hour.time)
-      const hourEnd = Math.min(hourStart + 60 * 60 * 1000, end)
-      let fill = '#343b50'
-      let tooltip
-
-      if (row.key === 'transparency') {
-        const rating = Number(hour.transparency)
-        fill = transparencyColor(rating)
-        const details = transparencyDetails(rating)
-        tooltip = Number.isFinite(rating)
-          ? `Transparency rating ${rating}/8 · Extinction ${details.extinction} mag/air mass · ${details.description}`
-          : 'Transparency: No data'
-      } else if (row.key === 'dewSpread') {
-        const spread = Number(hour.dewSpread)
-        const details = dewDetails(spread)
-        fill = details.color
-        tooltip = Number.isFinite(spread)
-          ? `Dew point spread ${spread.toFixed(1)}°C / ${(spread * 9 / 5).toFixed(1)}°F · ${details.text}`
-          : 'Dew point spread: No data'
-      } else {
-        const speed = Number(hour.windSpeed)
-        fill = windColor(speed)
-        tooltip = Number.isFinite(speed)
-          ? `Wind ${speed.toFixed(1)} mph${Number.isFinite(hour.windGust) ? ` · Gust ${Number(hour.windGust).toFixed(1)} mph` : ''}`
-          : 'Wind: No data'
-      }
-
-      const cell = svgElement('rect', {
-        x: x(hourStart) + 1,
-        y: rowY + 3,
-        width: Math.max(1, x(hourEnd) - x(hourStart) - 2),
-        height: rowHeight - 6,
-        rx: 2,
-        fill,
-        class: 'night-cell',
-      })
-      cell.append(svgElement('title', {}, `${hour.time} UTC · ${tooltip}`))
-      chart.append(cell)
-    })
-
-    for (let i = 0; i < hours.length; i += 4) {
-      const hourStart = Date.parse(hours[i].time)
-      if (rowIndex === 0) {
-        const date = new Date(hourStart)
-        chart.append(
-          svgElement('line', { x1: x(hourStart), x2: x(hourStart), y1: top, y2: top + rows.length * rowHeight, class: 'night-grid night-grid-vertical' }),
-          svgElement('text', { x: x(hourStart), y: top + rows.length * rowHeight + 17, class: 'night-time-label', 'text-anchor': 'middle' }, formatEasternClock(hourStart)),
-        )
-      }
-    }
-  })
-
-  return chart
-}
-
-function renderObservingConditionsChart(hours = []) {
-  const validHours = hours
-    .filter((hour) => Number.isFinite(Date.parse(hour.time)))
-    .sort((first, second) => Date.parse(first.time) - Date.parse(second.time))
-  if (validHours.length === 0) return h('p', { class: 'muted' }, 'No hourly forecast available.')
-
-  const windowSize = 24
-  const hourMs = 60 * 60 * 1000
-  const currentHourIndex = validHours.findIndex((hour) => Date.parse(hour.time) >= Date.now() - hourMs)
-  let windowStart = currentHourIndex < 0 ? 0 : currentHourIndex
-  const previous = h('button', { class: 'night-chart-nav', type: 'button', title: 'Previous 24 hours', 'aria-label': 'Previous 24 hours' }, '‹')
-  const next = h('button', { class: 'night-chart-nav', type: 'button', title: 'Next 24 hours', 'aria-label': 'Next 24 hours' }, '›')
-  const range = h('span', { class: 'night-chart-range', 'aria-live': 'polite' })
-  const chartHost = h('div', { class: 'night-chart-host' })
-  const controls = h('div', { class: 'night-chart-controls' }, previous, range, next)
-
-  const formatUtc = formatEasternNavigation
-
-  function updateWindow() {
-    const windowHours = validHours.slice(windowStart, windowStart + windowSize)
-    if (windowHours.length === 0) return
-    const windowStartTime = Date.parse(windowHours[0].time)
-    const windowEndTime = Math.min(windowStartTime + windowSize * hourMs, Date.parse(windowHours.at(-1).time) + hourMs)
-    previous.disabled = windowStart === 0
-    next.disabled = windowStart + windowSize >= validHours.length
-    range.textContent = `${formatUtc(windowStartTime)} - ${formatUtc(windowEndTime)}`
-    chartHost.replaceChildren(renderObservingConditionsWindow(windowHours, windowStartTime))
-  }
-
-  previous.addEventListener('click', () => {
-    windowStart = Math.max(0, windowStart - windowSize)
-    updateWindow()
-  })
-  next.addEventListener('click', () => {
-    if (windowStart + windowSize >= validHours.length) return
-    windowStart += windowSize
-    updateWindow()
-  })
-  updateWindow()
-  return h('div', { class: 'night-chart-wrap' }, controls, chartHost)
-}
-
 function transparencyExtinction(rating) {
   return [0.2, 0.35, 0.45, 0.55, 0.65, 0.775, 0.925, 1.05][Math.max(1, Math.min(8, Number(rating))) - 1]
 }
@@ -474,8 +307,8 @@ function transparencyColorForValue(value) {
 
 function dewSpreadColor(fahrenheit) {
   if (!Number.isFinite(fahrenheit)) return '#343b50'
-  if (fahrenheit > 18) return '#061160'
-  if (fahrenheit >= 11) return '#4369a5'
+  if (fahrenheit > 12) return '#061160'
+  if (fahrenheit >= 8) return '#4369a5'
   if (fahrenheit >= 5) return '#78a9c8'
   if (fahrenheit >= 2) return '#e6a04a'
   return '#d66b63'
@@ -484,8 +317,9 @@ function dewSpreadColor(fahrenheit) {
 function windSpeedColor(mph) {
   if (!Number.isFinite(mph)) return '#343b50'
   if (mph <= 5) return '#061160'
-  if (mph <= 11) return '#4369a5'
-  if (mph <= 17) return '#e6a04a'
+  if (mph <= 8) return '#4369a5'
+  if (mph <= 11) return '#78a9c8'
+  if (mph <= 14) return '#e6a04a'
   return '#d66b63'
 }
 
