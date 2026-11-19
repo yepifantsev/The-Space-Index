@@ -120,6 +120,38 @@ async function fetchUsnoMoonAltitude(lat, lon, now) {
   return nearest
 }
 
+async function fetchUsnoPrimaryPhases(now) {
+  const { year } = easternDateParts(now)
+  const currentYear = await fetchJson(
+    `https://aa.usno.navy.mil/api/moon/phases/year?year=${year}&ID=TheSpaceIndex`,
+  )
+  const nextYear = await fetchJson(
+    `https://aa.usno.navy.mil/api/moon/phases/year?year=${Number(year) + 1}&ID=TheSpaceIndex`,
+  )
+  const data = [
+    ...(currentYear.phasedata ?? []),
+    ...(nextYear.phasedata ?? []),
+  ]
+
+  const phases = data.map((phase) => ({
+    name: phase.phase,
+    time: new Date(
+      Date.UTC(
+        Number(phase.year),
+        Number(phase.month) - 1,
+        Number(phase.day),
+        Number(phase.time.slice(0, 2)),
+        Number(phase.time.slice(3, 5)),
+      ),
+    ).toISOString(),
+  })).sort((first, second) => Date.parse(first.time) - Date.parse(second.time))
+
+  return {
+    previous: phases.filter((phase) => Date.parse(phase.time) < now.getTime()).at(-1) ?? null,
+    next: phases.find((phase) => Date.parse(phase.time) >= now.getTime()) ?? null,
+  }
+}
+
 export default {
   name: 'moon-timeline',
   title: 'Moon',
@@ -134,9 +166,10 @@ export default {
       'https://api.open-meteo.com/v1/forecast' +
       `?latitude=${lat}&longitude=${lon}` +
       '&daily=sunrise,sunset,moonrise,moonset&timezone=UTC&forecast_days=7'
-    const [raw, usno] = await Promise.all([
+    const [raw, usno, primaryPhases] = await Promise.all([
       fetchJson(url),
       fetchUsnoMoonAltitude(lat, lon, now),
+      fetchUsnoPrimaryPhases(now),
     ])
     const daily = raw.daily ?? {}
     const findNext = (values) =>
@@ -164,6 +197,8 @@ export default {
         apparentMag: lunar.apparentMag,
         zenithSkySqm: lunar.zenithSkySqm,
         phaseAngleDeg: lunar.phaseAngleDeg,
+        previousPhase: primaryPhases.previous,
+        nextPhase: primaryPhases.next,
       },
     }
   },

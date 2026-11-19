@@ -22,15 +22,34 @@ export default {
       fetchJson(cometUrl),
     ])
 
-    const active = [
+    const activeShowerData = [
       meteor.shower,
       ...(meteor.alsoActive ?? []),
-    ].filter(Boolean).map((shower) => ({
-      name: shower.name,
-      code: shower.code,
-      zhr: Number(shower.zhr),
-      url: shower.url,
-    })).filter((shower) => Number.isFinite(shower.zhr))
+    ].filter(Boolean)
+
+    const active = await Promise.all(
+      activeShowerData.map(async (shower) => {
+        const zhr = Number(shower.zhr)
+        if (!Number.isFinite(zhr)) return null
+        const detail = await fetchJson(
+          `https://meteorshowercal.com/api/v1/shower/${encodeURIComponent(shower.code)}` +
+          `?lat=${lat}&lon=${lon}&date=${now.toISOString().slice(0, 10)}`,
+        )
+        return {
+          name: shower.name,
+          code: shower.code,
+          zhr,
+          peakUtc: detail.peak?.utc ?? null,
+          url: shower.url,
+        }
+      }),
+    )
+    const sortedActive = active
+      .filter(Boolean)
+      .sort((first, second) =>
+        (Date.parse(first.peakUtc) || Number.MAX_SAFE_INTEGER) -
+        (Date.parse(second.peakUtc) || Number.MAX_SAFE_INTEGER),
+      )
 
     const comets = (cometData.objects ?? [])
       .filter((comet) => comet.is_active && Number(comet.current_mag) <= 10)
@@ -44,7 +63,7 @@ export default {
 
     return {
       location: { lat, lon },
-      showers: active,
+      showers: sortedActive,
       comets,
       peakHr: meteor.peakHr ?? null,
       verdict: meteor.verdict?.headline ?? null,

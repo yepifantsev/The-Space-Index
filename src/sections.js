@@ -20,6 +20,13 @@ function formatEasternNavigation(value) {
   return `${month} ${day}, ${formatEasternClock(date)}`
 }
 
+function formatEasternDate(value) {
+  const date = new Date(value)
+  const month = new Intl.DateTimeFormat('en-US', { timeZone: EASTERN_TIME_ZONE, month: 'short' }).format(date)
+  const day = new Intl.DateTimeFormat('en-US', { timeZone: EASTERN_TIME_ZONE, day: 'numeric' }).format(date)
+  return `${month} ${day}`
+}
+
 function formatCneosDate(value) {
   const match = /^(\d{4})-([A-Z][a-z]{2})-(\d{2}) (\d{2}:\d{2})$/.exec(value)
   if (!match) return String(value)
@@ -69,7 +76,6 @@ function renderKpChart(readings = []) {
     role: 'img',
     'aria-label': 'Planetary K-index readings over the last 72 hours. The vertical line marks now; times are UTC.',
   })
-  chart.append(svgElement('title', {}, 'Planetary K-index, last 72 hours'))
 
   for (let kp = 0; kp <= 9; kp += 1) {
     const levelY = y(kp)
@@ -85,19 +91,19 @@ function renderKpChart(readings = []) {
     )
   }
 
-  const tickInterval = 12 * 60 * 60 * 1000
-  for (let tick = Math.ceil(start / tickInterval) * tickInterval; tick <= now; tick += tickInterval) {
-    const tickX = x(tick)
-    const label = formatEasternNavigation(tick)
-    chart.append(
-      svgElement('line', { x1: tickX, x2: tickX, y1: top, y2: bottom, class: 'kp-grid kp-grid-vertical' }),
-      svgElement('text', { x: tickX, y: bottom + 18, class: 'kp-tick', 'text-anchor': 'middle' }, label),
-    )
-  }
-
   const validReadings = readings
     .map((reading) => ({ time: Date.parse(reading.time), kp: Number(reading.kp) }))
     .filter((reading) => Number.isFinite(reading.time) && Number.isFinite(reading.kp) && reading.kp >= 0 && reading.kp <= 9)
+    .sort((first, second) => first.time - second.time)
+
+  for (let i = 0; i < validReadings.length; i += 8) {
+    const reading = validReadings[i]
+    const tickX = x(reading.time)
+    chart.append(
+      svgElement('line', { x1: tickX, x2: tickX, y1: top, y2: bottom, class: 'kp-grid kp-grid-vertical' }),
+      svgElement('text', { x: tickX, y: bottom + 23, class: 'kp-tick', 'text-anchor': 'middle' }, formatEasternDate(reading.time)),
+    )
+  }
 
   for (const reading of validReadings) {
     const slotStart = Math.max(start, reading.time)
@@ -153,11 +159,11 @@ function renderNightSkyWindow(validHours, start) {
     { label: 'Low', key: 'cloudCoverLow' },
   ]
   const width = 400
-  const height = 244
+  const height = 275
   const left = 40
   const right = 396
   const top = 0
-  const rowHeight = 46
+  const rowHeight = 56
   const end = start + 24 * 60 * 60 * 1000
   const x = (time) => left + ((time - start) / (end - start)) * (right - left)
   const chart = svgElement('svg', {
@@ -233,7 +239,7 @@ function renderNightSkyWindow(validHours, start) {
   defs.append(dayGradient, nightGradient)
   chart.append(defs)
 
-  const legendY = top + rows.length * rowHeight + 53
+  const legendY = top + rows.length * rowHeight + 60
   const rampX = 102
   const rampWidth = 247
   chart.append(
@@ -480,12 +486,11 @@ function renderStandaloneMetric(hours = [], metric) {
   const latest = Date.parse(validHours.at(-1).time)
   const nowMs = Date.now()
   const currentHour = Math.floor(nowMs / hourMs) * hourMs
-  const firstWindow = Math.max(
-    Math.floor(earliest / hourMs) * hourMs,
-    currentHour - 24 * hourMs,
-  )
-  const lastWindow = latest - windowMs
-  let windowStartTime = Math.max(firstWindow, Math.min(currentHour, latest - windowMs))
+  const earliestHour = Math.floor(earliest / hourMs) * hourMs
+  const latestHour = Math.floor(latest / hourMs) * hourMs
+  const firstWindow = earliestHour
+  const lastWindow = Math.max(firstWindow, latestHour - windowMs + hourMs)
+  let windowStartTime = Math.max(firstWindow, Math.min(currentHour, lastWindow))
   const previous = h('button', { class: 'night-chart-nav', type: 'button', title: 'Previous 24 hours', 'aria-label': 'Previous 24 hours' }, '‹')
   const next = h('button', { class: 'night-chart-nav', type: 'button', title: 'Next 24 hours', 'aria-label': 'Next 24 hours' }, '›')
   const range = h('span', { class: 'night-chart-range', 'aria-live': 'polite' })
@@ -535,14 +540,14 @@ function renderStandaloneMetric(hours = [], metric) {
     chartHost.replaceChildren(renderStandaloneMetricWindow(chartHours, windowStartTime, metric))
   }
   previous.addEventListener('click', () => {
-    if (windowStartTime - windowMs >= firstWindow) {
-      windowStartTime -= windowMs
+    if (windowStartTime > firstWindow) {
+      windowStartTime = Math.max(windowStartTime - windowMs, firstWindow)
       updateWindow()
     }
   })
   next.addEventListener('click', () => {
-    if (windowStartTime + windowMs <= lastWindow) {
-      windowStartTime += windowMs
+    if (windowStartTime < lastWindow) {
+      windowStartTime = Math.min(windowStartTime + windowMs, lastWindow)
       updateWindow()
     }
   })
@@ -557,6 +562,8 @@ export const renderers = {
     return h(
       'div',
       {},
+      h('div', { class: 'meta' }, 'Planetary K-index readings over the last 72 hours.'),
+      h('div', { class: 'meta' }, 'The vertical line marks now; times are UTC.'),
       h('span', { class: 'big big-after', style: latest ? `color: ${kpColor(latest.kp)}` : undefined }, latest ? `Kp ${latest.kp}` : 'No Kp reading'),
       latest && h('span', { class: 'night-chart-range kp-as-of' }, `as of ${formatEasternNavigation(latest.time)}`),
       renderKpChart(data.kp),
@@ -609,8 +616,8 @@ export const renderers = {
       max: 18,
       ticks: [{ value: 0, label: '≤ 1°F' }, { value: 5, label: '5°F' }, { value: 11, label: '11°F' }, { value: 18, label: '> 18°F' }],
       legendTitle: 'Dew point spread',
-      legendLeft: 'Bone dry (> 18°F)',
-      legendRight: 'Saturation / Fog (≤ 1°F)',
+      legendLeft: 'Very Dry (> 18°F)',
+      legendRight: 'Fog / Condensation (≤ 1°F)',
       gradient: [
         { offset: '0%', color: '#061160' },
         { offset: '25%', color: '#4369a5' },
@@ -646,18 +653,20 @@ export const renderers = {
       {},
       h(
         'div',
-        { class: 'moon-summary' },
+        { class: 'moon-summary mt-1' },
         h('span', { class: 'moon-glyph', role: 'img', 'aria-label': moon.name }, moon.glyph ?? '◐'),
         h('div', {},
           h('strong', {}, moon.name ?? 'Moon phase'),
           h('div', { class: 'muted' }, `${moon.illumination ?? '—'}% illuminated`),
         ),
       ),
-      h('div', { class: 'muted' }, `Moonrise `, h('strong', {}, `${formatDate(data.moonrise)}`), ` · Moonset `, h('strong', {}, `${formatDate(data.moonset)}`)),
-      h('div', { class: 'muted' }, `Sunrise `, h('strong', {}, `${formatDate(data.sunrise)}`), ` · Sunset `, h('strong', {}, `${formatDate(data.sunset)}`)),
-      h('div', { class: 'muted' }, `Altitude `, h('strong', {}, `${moon.altitude == null ? '—' : `${moon.altitude.toFixed(1)}°`}`)),
-      h('div', { class: 'muted' }, `Apparent magnitude `, h('strong', {}, `${moon.apparentMag == null ? '—' : moon.apparentMag.toFixed(2)}`)),
-      h('div', { class: 'muted' }, `Background sky glow `, h('strong', {}, `${moon.zenithSkySqm == null ? '—' : `${moon.zenithSkySqm.toFixed(2)} mag/arcsec²`}`)),
+      h('div', { class: 'meta mt-1' }, `Moonrise `, h('strong', {}, `${formatDate(data.moonrise)}`)),
+      h('div', { class: 'meta' }, `Moonset `, h('strong', {}, `${formatDate(data.moonset)}`)),
+      h('div', { class: 'meta mt-1' }, `Last phase `, h('strong', {}, `${moon.previousPhase?.name ?? '—'} · ${moon.previousPhase?.time ? formatEasternNavigation(moon.previousPhase.time) : '—'}`)),
+      h('div', { class: 'meta' }, `Next phase `, h('strong', {}, `${moon.nextPhase?.name ?? '—'} · ${moon.nextPhase?.time ? formatEasternNavigation(moon.nextPhase.time) : '—'}`)),
+      h('div', { class: 'meta mt-1' }, `Altitude `, h('strong', {}, `${moon.altitude == null ? '—' : `${moon.altitude.toFixed(1)}°`}`)),
+      h('div', { class: 'meta' }, `Apparent magnitude `, h('strong', {}, `${moon.apparentMag == null ? '—' : moon.apparentMag.toFixed(2)}`)),
+      h('div', { class: 'meta' }, `Background sky glow `, h('strong', {}, `${moon.zenithSkySqm == null ? '—' : `${moon.zenithSkySqm.toFixed(2)} mag/arcsec²`}`)),
     )
   },
 
@@ -710,7 +719,11 @@ export const renderers = {
             h('span', { class: 'bullet-glyph', 'aria-hidden': 'true' }, '✨'),
             h('div', { class: 'meteor-row-content' },
               h('strong', {}, shower.name),
-              h('span', { class: 'muted' }, ` — ZHR ${Math.round(shower.zhr)}`),
+              h('div', { class: 'muted' }, [
+                'Peak ZHR: ',
+                h('strong', {}, h('em', {}, String(Math.round(shower.zhr)))),
+                shower.peakUtc ? ` (${formatEasternNavigation(shower.peakUtc)})` : '',
+              ]),
               h('div', { class: 'zhr-meter' },
                 h('span', { style: `width: ${Math.max(2, Math.min(100, Number(shower.zhr) / 1.5))}%` }),
               ),
