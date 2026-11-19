@@ -21,7 +21,7 @@ export default {
         ? new Date(initMs + Number(row.timepoint) * 3600000).toISOString()
         : null,
       rating: Number(row.transparency),
-    })).filter((row) => row.time && Date.parse(row.time) >= now.getTime())
+    })).filter((row) => row.time && Date.parse(row.time) >= now.getTime() - 24 * 3600000)
     return { location: { lat, lon }, forecast }
   },
 }

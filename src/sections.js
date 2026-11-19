@@ -445,8 +445,9 @@ function transparencyExtinction(rating) {
   return [0.2, 0.35, 0.45, 0.55, 0.65, 0.775, 0.925, 1.05][Math.max(1, Math.min(8, Number(rating))) - 1]
 }
 
-function transparencyRange(rating) {
-  return ['< 0.3', '0.3 - 0.4', '0.4 - 0.5', '0.5 - 0.6', '0.6 - 0.7', '0.7 - 0.9', '0.9 - 1.0', '> 1.0'][Math.max(1, Math.min(8, Number(rating))) - 1]
+function transparencyNumeric(rating) {
+  const values = [0.2, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.1]
+  return values[Math.max(1, Math.min(8, Number(rating))) - 1]
 }
 
 function transparencyColorStandalone(rating) {
@@ -454,6 +455,14 @@ function transparencyColorStandalone(rating) {
   const navy = [6, 22, 70]
   const gray = [170, 170, 170]
   const amount = (Math.max(1, Math.min(8, rating)) - 1) / 7
+  return `rgb(${navy.map((channel, i) => Math.round(channel + (gray[i] - channel) * amount)).join(', ')})`
+}
+
+function transparencyColorForValue(value) {
+  if (!Number.isFinite(value)) return '#343b50'
+  const navy = [6, 22, 70]
+  const gray = [170, 170, 170]
+  const amount = Math.max(0, Math.min(1, value))
   return `rgb(${navy.map((channel, i) => Math.round(channel + (gray[i] - channel) * amount)).join(', ')})`
 }
 
@@ -470,7 +479,7 @@ function windSpeedColor(mph) {
   if (!Number.isFinite(mph)) return '#343b50'
   if (mph <= 5) return '#061160'
   if (mph <= 11) return '#4369a5'
-  if (mph <= 17) return '#78a9c8'
+  if (mph <= 17) return '#e6a04a'
   return '#d66b63'
 }
 
@@ -513,10 +522,9 @@ function renderStandaloneMetricWindow(hours, start, metric) {
     let tooltip
 
     if (metric.type === 'transparency') {
-      const rating = Number(hour.rating)
-      value = transparencyExtinction(rating)
-      fill = transparencyColorStandalone(rating)
-      tooltip = `${transparencyRange(rating)} mag/air mass`
+      value = Number(hour.extinction)
+      fill = transparencyColorForValue(value)
+      tooltip = `${value.toFixed(1)}`
     } else if (metric.type === 'dew') {
       const spreadC = Number(hour.spreadC)
       value = Number.isFinite(spreadC) ? spreadC * 9 / 5 : null
@@ -529,7 +537,7 @@ function renderStandaloneMetricWindow(hours, start, metric) {
     }
     if (!Number.isFinite(value)) return
 
-    const duration = metric.type === 'transparency' ? 3 * 60 * 60 * 1000 : 60 * 60 * 1000
+    const duration = 60 * 60 * 1000
     const barWidth = duration / (24 * 60 * 60 * 1000) * (right - left)
     const barY = y(value)
     const bar = svgElement('rect', {
@@ -576,10 +584,15 @@ function renderStandaloneMetric(hours = [], metric) {
     .sort((first, second) => Date.parse(first.time) - Date.parse(second.time))
   if (validHours.length === 0) return h('p', { class: 'muted' }, 'No hourly forecast available.')
 
-  const windowSize = 24
   const hourMs = 60 * 60 * 1000
-  const currentHourIndex = validHours.findIndex((hour) => Date.parse(hour.time) >= Date.now() - hourMs)
-  let windowStart = currentHourIndex < 0 ? 0 : currentHourIndex
+  const windowMs = 24 * hourMs
+  const earliest = Date.parse(validHours[0].time)
+  const latest = Date.parse(validHours.at(-1).time)
+  const nowMs = Date.now()
+  const firstWindow = Math.floor(earliest / windowMs) * windowMs
+  const lastWindow = Math.floor(latest / windowMs) * windowMs
+  const currentWindow = Math.floor(nowMs / windowMs) * windowMs
+  let windowStartTime = Math.max(firstWindow, Math.min(currentWindow, lastWindow))
   const previous = h('button', { class: 'night-chart-nav', type: 'button', title: 'Previous 24 hours', 'aria-label': 'Previous 24 hours' }, '‹')
   const next = h('button', { class: 'night-chart-nav', type: 'button', title: 'Next 24 hours', 'aria-label': 'Next 24 hours' }, '›')
   const range = h('span', { class: 'night-chart-range', 'aria-live': 'polite' })
@@ -591,17 +604,58 @@ function renderStandaloneMetric(hours = [], metric) {
   }
 
   function updateWindow() {
-    const windowHours = validHours.slice(windowStart, windowStart + windowSize)
+    const windowEndTime = windowStartTime + windowMs
+    const windowHours = validHours.filter((hour) => {
+      const time = Date.parse(hour.time)
+      return time >= windowStartTime && time < windowEndTime
+    })
     if (windowHours.length === 0) return
-    const windowStartTime = Date.parse(windowHours[0].time)
-    const windowEndTime = Math.min(windowStartTime + windowSize * hourMs, Date.parse(windowHours.at(-1).time) + hourMs)
-    previous.disabled = windowStart === 0
-    next.disabled = windowStart + windowSize >= validHours.length
+    let chartHours = windowHours
+    if (metric.type === 'transparency') {
+      chartHours = []
+      for (let time = windowStartTime; time < windowEndTime; time += hourMs) {
+        if (time < earliest) continue
+        const exact = validHours.find((hour) => Date.parse(hour.time) === time)
+        if (exact) {
+          chartHours.push({ time: new Date(time).toISOString(), extinction: transparencyNumeric(exact.rating) })
+          continue
+        }
+        const before = validHours.filter((hour) => Date.parse(hour.time) < time).at(-1)
+        const after = validHours.find((hour) => Date.parse(hour.time) > time)
+        let extinction
+        if (before && after) {
+          const beforeTime = Date.parse(before.time)
+          const afterTime = Date.parse(after.time)
+          extinction = transparencyNumeric(before.rating) +
+            (transparencyNumeric(after.rating) - transparencyNumeric(before.rating)) *
+            ((time - beforeTime) / (afterTime - beforeTime))
+        } else if (before) {
+          extinction = transparencyNumeric(before.rating)
+        } else if (after) {
+          extinction = transparencyNumeric(after.rating)
+        }
+        if (Number.isFinite(extinction)) {
+          chartHours.push({ time: new Date(time).toISOString(), extinction })
+        }
+      }
+    }
+    previous.disabled = windowStartTime <= firstWindow
+    next.disabled = windowStartTime >= lastWindow
     range.textContent = `${formatUtc(windowStartTime)} - ${formatUtc(windowEndTime)}`
-    chartHost.replaceChildren(renderStandaloneMetricWindow(windowHours, windowStartTime, metric))
+    chartHost.replaceChildren(renderStandaloneMetricWindow(chartHours, windowStartTime, metric))
   }
-  previous.addEventListener('click', () => { windowStart = Math.max(0, windowStart - windowSize); updateWindow() })
-  next.addEventListener('click', () => { if (windowStart + windowSize < validHours.length) { windowStart += windowSize; updateWindow() } })
+  previous.addEventListener('click', () => {
+    if (windowStartTime - windowMs >= firstWindow) {
+      windowStartTime -= windowMs
+      updateWindow()
+    }
+  })
+  next.addEventListener('click', () => {
+    if (windowStartTime + windowMs <= lastWindow) {
+      windowStartTime += windowMs
+      updateWindow()
+    }
+  })
   updateWindow()
   return h('div', { class: 'night-chart-wrap' }, controls, chartHost)
 }
@@ -688,8 +742,9 @@ export const renderers = {
       legendRight: 'Strong',
       gradient: [
         { offset: '0%', color: '#061160' },
-        { offset: '35%', color: '#4369a5' },
-        { offset: '65%', color: '#78a9c8' },
+        { offset: '25%', color: '#4369a5' },
+        { offset: '50%', color: '#78a9c8' },
+        { offset: '75%', color: '#e6a04a' },
         { offset: '100%', color: '#d66b63' },
       ],
     }),
