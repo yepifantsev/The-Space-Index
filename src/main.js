@@ -5,7 +5,7 @@ import { renderSection } from './sections.js'
 // Data JSON files are produced by `npm run fetch` and bundled at build time,
 // so visitors never make requests to third-party APIs.
 const modules = import.meta.glob('../data/*.json', { eager: true, import: 'default' })
-const order = ['space-weather', 'launches', 'night-forecast', 'satellites', 'news']
+const order = ['space-weather', 'night-forecast', 'observing-conditions', 'moon-timeline', 'launches', 'satellites', 'news']
 const rank = (name) => (order.includes(name) ? order.indexOf(name) : order.length)
 const sources = Object.values(modules).sort(
   (a, b) => rank(a.name) - rank(b.name) || String(a.name).localeCompare(String(b.name)),

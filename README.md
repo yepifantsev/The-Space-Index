@@ -11,6 +11,8 @@ cross-origin requests** — they only download static files.
 | Space weather      | [NOAA SWPC](https://www.swpc.noaa.gov/) planetary K-index     | `data/space-weather.json`  |
 | Rocket launches    | [The Space Devs – Launch Library 2](https://thespacedevs.com/) | `data/launches.json`       |
 | Night sky forecast | [Open-Meteo](https://open-meteo.com/) cloud cover             | `data/night-forecast.json` |
+| Observing conditions | [7Timer!](https://www.7timer.info/) transparency · [Open-Meteo](https://open-meteo.com/) dew point and wind | `data/observing-conditions.json` |
+| Moon timeline | [Open-Meteo](https://open-meteo.com/) rise/set times and calculated lunar phase | `data/moon-timeline.json` |
 | Satellite tracking | [CelesTrak](https://celestrak.org/) GP elements (stations)    | `data/satellites.json`     |
 | Space news         | [Spaceflight News API](https://spaceflightnewsapi.net/)       | `data/news.json`           |
 

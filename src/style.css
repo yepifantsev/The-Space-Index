@@ -62,6 +62,18 @@ a {
   padding-left: 1.1rem;
 }
 
+.moon-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.moon-glyph {
+  font-size: 3rem;
+  line-height: 1;
+}
+
 #launches {
   box-sizing: border-box;
   height: 390px;
