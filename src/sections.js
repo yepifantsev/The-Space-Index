@@ -20,6 +20,21 @@ function formatEasternNavigation(value) {
   return `${month}/${day} ${formatEasternClock(date)}`
 }
 
+function formatCneosDate(value) {
+  const match = /^(\d{4})-([A-Z][a-z]{2})-(\d{2}) (\d{2}:\d{2})$/.exec(value)
+  if (!match) return String(value)
+  const monthIndex = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].indexOf(match[2])
+  if (monthIndex < 0) return String(value)
+  const date = new Date(Date.UTC(Number(match[1]), monthIndex, Number(match[3]), Number(match[4].slice(0, 2)), Number(match[4].slice(3, 5))))
+  return new Intl.DateTimeFormat('en-US', {
+    timeZone: EASTERN_TIME_ZONE,
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(date)
+}
+
 function svgElement(tag, attrs = {}, text) {
   const element = document.createElementNS(SVG_NS, tag)
   for (const [name, value] of Object.entries(attrs)) element.setAttribute(name, String(value))
@@ -638,6 +653,86 @@ export const renderers = {
     )
   },
 
+  'visible-planets': (data) =>
+    h(
+      'div',
+      { class: 'dense-card-content' },
+      h(
+        'table',
+        { class: 'planet-table' },
+        h('thead', {},
+          h('tr', {},
+            h('th', { scope: 'col' }, 'Planet'),
+            h('th', { scope: 'col' }, 'Above'),
+            h('th', { scope: 'col' }, 'Rise / Set'),
+            h('th', { scope: 'col' }, 'Constellation'),
+          ),
+        ),
+        h('tbody', {},
+          (data.planets ?? []).map((planet) =>
+            h('tr', {},
+              h('td', {}, h('span', { class: 'planet-icon', role: 'img', 'aria-label': planet.name }, planet.icon), ` ${planet.name}`),
+              h('td', {}, planet.aboveHorizon ? 'Yes' : 'No'),
+              h('td', {}, `${formatDate(planet.rise)} / ${formatDate(planet.set)}`),
+              h('td', {}, planet.constellation ?? '—'),
+            ),
+          ),
+        ),
+      ),
+    ),
+
+  'celestial-events': (data) =>
+    h(
+      'div',
+      { class: 'dense-card-content' },
+      h('div', { class: 'muted' }, data.verdict ?? 'Active meteor shower forecast'),
+      h(
+        'ul',
+        { class: 'compact-list' },
+        (data.showers ?? []).map((shower) =>
+          h('li', {},
+            h('strong', {}, shower.name),
+            h('span', { class: 'muted' }, ` — ZHR ${Math.round(shower.zhr)}`),
+            h('div', { class: 'zhr-meter' },
+              h('span', { style: `width: ${Math.max(2, Math.min(100, Number(shower.zhr) / 1.5))}%` }),
+            ),
+          ),
+        ),
+      ),
+      h('strong', {}, 'Bright comets'),
+      (data.comets ?? []).length
+        ? h(
+            'ul',
+            { class: 'compact-list' },
+            data.comets.map((comet) =>
+              h('li', {}, h('strong', {}, comet.name), ` — magnitude ${comet.magnitude.toFixed(1)}`),
+            ),
+          )
+        : h('p', { class: 'muted' }, 'No binocular-visible comets currently reported.'),
+    ),
+
+  'neo-close-approaches': (data) =>
+    h(
+      'div',
+      { class: 'dense-card-content' },
+      h(
+        'ul',
+        { class: 'compact-list' },
+        (data.approaches ?? []).map((object) =>
+          h('li', {},
+            h('strong', {}, object.name),
+            h('div', { class: 'muted' }, formatCneosDate(object.date)),
+            h('div', { class: 'muted' }, [
+              `${object.estimatedDiameterKm == null ? '—' : `${object.estimatedDiameterKm.toFixed(2)} km Ø`}`,
+              ` · ${(object.relativeVelocityKph / 3600).toFixed(2)} km/s`,
+              ` · ${object.missDistanceLd.toFixed(2)} LD`,
+            ].join('')),
+          ),
+        ),
+      ),
+      (data.approaches ?? []).length === 0 &&
+        h('p', { class: 'muted' }, 'No close approaches reported for this week.'),
+    ),
 
   satellites: (data) =>
     h(
@@ -681,14 +776,15 @@ export function renderSection(source) {
   }
 
   const attribution = source.attribution
-  const sourceLinks = Array.isArray(attribution)
-    ? attribution.map((item, index) => [
-        index > 0 ? ' · ' : null,
-        h('a', { href: item.url, target: '_blank', rel: 'noopener noreferrer' }, item.label),
-      ])
-    : attribution && [
-        h('a', { href: attribution.url, target: '_blank', rel: 'noopener noreferrer' }, attribution.label),
-      ]
+  const sourceLinks = []
+  if (Array.isArray(attribution)) {
+    attribution.forEach((item, index) => {
+      if (index > 0) sourceLinks.push(' · ')
+      sourceLinks.push(h('a', { href: item.url, target: '_blank', rel: 'noopener noreferrer' }, item.label))
+    })
+  } else if (attribution) {
+    sourceLinks.push(h('a', { href: attribution.url, target: '_blank', rel: 'noopener noreferrer' }, attribution.label))
+  }
   return h(
     'section',
     { class: 'card', id: source.name },
