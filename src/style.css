@@ -433,6 +433,12 @@ a {
   margin-bottom: 0;
 }
 
+.personal-project {
+  width: 50%;
+  max-width: 580px;
+  margin: 0 auto 0.75rem;
+}
+
 pre {
   overflow: auto;
 }
@@ -442,6 +448,9 @@ pre {
     grid-template-columns: minmax(0, 1fr);
   }
   .card {
+    width: 100%;
+  }
+  .personal-project {
     width: 100%;
   }
 }

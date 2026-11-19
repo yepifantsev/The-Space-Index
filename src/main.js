@@ -18,9 +18,14 @@ if (sources.length === 0) {
   app.append(...sources.map(renderSection))
 }
 
-document.querySelector('#build-time').textContent = `Built ${new Date(__BUILD_TIME__).toLocaleString(undefined, { hour: 'numeric', minute: '2-digit' })}.`
+document.querySelector('#build-time').textContent =
+  `${new Date(__BUILD_TIME__).toLocaleString(undefined, { hour: 'numeric', minute: '2-digit' })}`
 
-const locationTime = document.querySelector('#site-location-time')
+document.querySelector('#build-version').textContent =
+  `v${__APP_VERSION__}`
+
+
+  const locationTime = document.querySelector('#site-location-time')
 
 function formatLocationDateTime(date) {
   const month = new Intl.DateTimeFormat('en-US', {

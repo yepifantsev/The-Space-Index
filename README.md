@@ -18,7 +18,7 @@ cross-origin requests** — they only download static files.
 | Visible planets | [NASA/JPL Horizons](https://ssd.jpl.nasa.gov/horizons/) location-based planet ephemerides | `data/visible-planets.json` |
 | Meteor showers & comets | [MeteorShowerCal](https://meteorshowercal.com/api/docs/) ZHR · [COBS](https://www.cobs.si/) comet magnitudes | `data/celestial-events.json` |
 | NEO close approaches | [NASA/JPL CNEOS](https://cneos.jpl.nasa.gov/ca/) close-approach data | `data/neo-close-approaches.json` |
-| Satellite tracking | [CelesTrak](https://celestrak.org/) GP elements (stations)    | `data/satellites.json`     |
+| Satellite tracking | [CelesTrak](https://celestrak.org/) brightest-satellite TLE elements | `data/satellites.json` |
 | Space news         | [Spaceflight News API](https://spaceflightnewsapi.net/)       | `data/news.json`           |
 
 ## How it works

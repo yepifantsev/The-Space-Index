@@ -349,21 +349,9 @@ function renderNightSkyChart(hours = []) {
   return h('div', { class: 'night-chart-wrap' }, controls, chartHost)
 }
 
-function transparencyExtinction(rating) {
-  return [0.2, 0.35, 0.45, 0.55, 0.65, 0.775, 0.925, 1.05][Math.max(1, Math.min(8, Number(rating))) - 1]
-}
-
 function transparencyNumeric(rating) {
   const values = [0.2, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.1]
   return values[Math.max(1, Math.min(8, Number(rating))) - 1]
-}
-
-function transparencyColorStandalone(rating) {
-  if (!Number.isFinite(rating)) return '#343b50'
-  const navy = [6, 22, 70]
-  const gray = [170, 170, 170]
-  const amount = (Math.max(1, Math.min(8, rating)) - 1) / 7
-  return `rgb(${navy.map((channel, i) => Math.round(channel + (gray[i] - channel) * amount)).join(', ')})`
 }
 
 function transparencyColorForValue(value) {
@@ -602,11 +590,11 @@ export const renderers = {
     return h(
       'div',
       {},
-      h('div', { class: 'meta' }, 'Planetary K-index readings over the last 72 hours.'),
-      h('div', { class: 'meta' }, 'The vertical line marks now; times are UTC.'),
       h('span', { class: 'big big-after', style: latest ? `color: ${kpColor(latest.kp)}` : undefined }, latest ? `Kp ${latest.kp}` : 'No Kp reading'),
       latest && h('span', { class: 'night-chart-range kp-as-of' }, `as of ${formatEasternNavigation(latest.time)}`),
       renderKpChart(data.kp),
+      h('div', { class: 'meta' }, 'Planetary K-index readings over the last 72 hours.'),
+      h('div', { class: 'meta' }, 'The vertical line marks now; times are UTC.'),
     )
   },
 
