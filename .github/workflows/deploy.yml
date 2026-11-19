@@ -5,10 +5,10 @@ on:
     branches: [main]
   schedule:
     - cron: "17 * * * *"
-    - cron: "17 */3 * * *"
-    - cron: "17 */6 * * *"
-    - cron: "17 */12 * * *"
-    - cron: "17 17 * * *" 
+    - cron: "18 */3 * * *"
+    - cron: "19 */6 * * *"
+    - cron: "20 */12 * * *"
+    - cron: "21 17 * * *"
   workflow_dispatch:
 
 permissions:
@@ -52,16 +52,16 @@ jobs:
             "17 * * * *")
               echo "names=night-forecast dew-point-spread wind" >> "$GITHUB_OUTPUT"
               ;;
-            "17 */3 * * *")
+            "18 */3 * * *")
               echo "names=space-weather atmosphere-transparency" >> "$GITHUB_OUTPUT"
               ;;
-            "17 */6 * * *")
+            "19 */6 * * *")
               echo "names=launches satellites news" >> "$GITHUB_OUTPUT"
               ;;
-            "17 */12 * * *")
+            "20 */12 * * *")
               echo "names=moon-timeline celestial-events" >> "$GITHUB_OUTPUT"
               ;;
-            "17 17 * * *")
+            "21 17 * * *")
               echo "names=visible-planets neo-close-approaches" >> "$GITHUB_OUTPUT"
               ;;
             "")

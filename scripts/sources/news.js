@@ -6,7 +6,7 @@ const ENDPOINT = 'https://api.spaceflightnewsapi.net/v4/articles/?limit=10'
 export default {
   name: 'news',
   title: 'Space News',
-  attribution: { label: 'Spaceflight News API', url: 'https://spaceflightnewsapi.net/' },
+  attribution: { label: 'Spaceflight News', url: 'https://spaceflightnewsapi.net/' },
   async fetch() {
     const raw = await fetchJson(ENDPOINT)
     return {

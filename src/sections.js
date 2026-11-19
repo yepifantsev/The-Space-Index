@@ -1,4 +1,4 @@
-import { h, formatDate } from './h.js'
+import { h, formatTime } from './h.js'
 
 const SVG_NS = 'http://www.w3.org/2000/svg'
 const KP_INTERVAL_MS = 3 * 60 * 60 * 1000
@@ -699,8 +699,8 @@ export const renderers = {
           h('div', { class: 'muted' }, `${moon.illumination ?? '—'}% illuminated`),
         ),
       ),
-      h('div', { class: 'meta mt-1' }, `Moonrise `, h('strong', {}, `${formatDate(data.moonrise)}`)),
-      h('div', { class: 'meta' }, `Moonset `, h('strong', {}, `${formatDate(data.moonset)}`)),
+      h('div', { class: 'meta mt-1' }, `Moonrise `, h('strong', {}, `${formatTime(data.moonrise)}`)),
+      h('div', { class: 'meta' }, `Moonset `, h('strong', {}, `${formatTime(data.moonset)}`)),
       h('div', { class: 'meta mt-1' }, `Last phase `, h('strong', {}, `${moon.previousPhase?.name ?? '—'} · ${moon.previousPhase?.time ? formatEasternNavigation(moon.previousPhase.time) : '—'}`)),
       h('div', { class: 'meta' }, `Next phase `, h('strong', {}, `${moon.nextPhase?.name ?? '—'} · ${moon.nextPhase?.time ? formatEasternNavigation(moon.nextPhase.time) : '—'}`)),
       h('div', { class: 'meta mt-1' }, `Altitude `, h('strong', {}, `${Number.isFinite(moon.altitude) ? `${moon.altitude.toFixed(1)}°` : '—'}`)),
@@ -728,7 +728,7 @@ export const renderers = {
           (data.planets ?? []).map((planet) =>
             h('tr', { class: planet.aboveHorizon ? undefined : 'planet-row-muted' },
               h('td', {}, h('span', { class: 'planet-icon', role: 'img', 'aria-label': planet.name }, planet.icon)),
-              h('td', {}, `${formatDate(planet.rise)} / ${formatDate(planet.set)}`),
+              h('td', {}, `${formatTime(planet.rise)} / ${formatTime(planet.set)}`),
               h(
                 'td',
                 {},
@@ -736,7 +736,7 @@ export const renderers = {
                   ? h('strong', {}, '—')
                   : h('strong', {}, Number.isFinite(planet.apparentMagnitude) ? planet.apparentMagnitude.toFixed(1) : '—'),
                 ' / ',
-                planet.maximumElevationTime ? formatDate(planet.maximumElevationTime) : '—',
+                planet.maximumElevationTime ? formatTime(planet.maximumElevationTime) : '—',
               ),
               h('td', {}, planet.constellation ?? '—'),
             ),
@@ -864,7 +864,7 @@ export const renderers = {
           {},
           h('a', { href: a.url, target: '_blank', rel: 'noopener noreferrer' }, a.title),
           h('br'),
-          h('span', { class: 'muted' }, `${a.site} · ${formatDate(a.publishedAt)}`),
+          h('span', { class: 'muted' }, `${a.site} · ${formatTime(a.publishedAt)}`),
         ),
       ),
     ),
@@ -904,7 +904,7 @@ export function renderSection(source) {
     h(
       'p',
       { class: 'meta' },
-      `Updated: ${formatDate(source.updatedAt)}`,
+      `Updated: ${formatLocationNavigation(source.updatedAt)}`,
       sourceLinks && [' · Source: ', ...sourceLinks],
     ),
   )

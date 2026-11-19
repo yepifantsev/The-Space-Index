@@ -4,7 +4,7 @@ export default {
   name: 'celestial-events',
   title: 'Active Meteor Showers & Comets',
   attribution: [
-    { label: 'MeteorShowerCal', url: 'https://meteorshowercal.com/api/docs/' },
+    { label: 'MSCal', url: 'https://meteorshowercal.com/api/docs/' },
     { label: 'COBS', url: 'https://www.cobs.si/' },
   ],
   async fetch({ now = new Date() } = {}) {
