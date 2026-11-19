@@ -4,8 +4,11 @@ on:
   push:
     branches: [main]
   schedule:
-    # Several times a day (UTC).
+    - cron: "17 * * * *"
+    - cron: "17 */3 * * *"
     - cron: "17 */6 * * *"
+    - cron: "17 */12 * * *"
+    - cron: "17 17 * * *" 
   workflow_dispatch:
 
 permissions:
@@ -40,13 +43,56 @@ jobs:
           key: space-data-${{ github.run_id }}
           restore-keys: space-data-
 
-      - name: Fetch data
-        run: npm run fetch
+      - name: Select scheduled sources
+        id: sources
         env:
-          SITE_LAT: ${{ vars.SITE_LAT }}
-          SITE_LON: ${{ vars.SITE_LON }}
-          SITE_LOCATION_NAME: ${{ vars.SITE_LOCATION_NAME }}
-          SITE_TIME_ZONE: ${{ vars.SITE_TIME_ZONE }}
+          SCHEDULE: ${{ github.event.schedule }}
+        run: |
+          case "$SCHEDULE" in
+            "17 * * * *")
+              echo "names=night-forecast dew-point-spread wind" >> "$GITHUB_OUTPUT"
+              ;;
+            "17 */3 * * *")
+              echo "names=space-weather atmosphere-transparency" >> "$GITHUB_OUTPUT"
+              ;;
+            "17 */6 * * *")
+              echo "names=launches satellites news" >> "$GITHUB_OUTPUT"
+              ;;
+            "17 */12 * * *")
+              echo "names=moon-timeline celestial-events" >> "$GITHUB_OUTPUT"
+              ;;
+            "17 17 * * *")
+              echo "names=visible-planets neo-close-approaches" >> "$GITHUB_OUTPUT"
+              ;;
+            "")
+              echo "names=" >> "$GITHUB_OUTPUT"
+              ;;
+          esac
+
+      - name: Save data snapshot before fetch
+        run: |
+          rm -rf /tmp/space-data-before
+          mkdir -p /tmp/space-data-before
+          cp -a data/. /tmp/space-data-before/
+
+      - name: Fetch data
+        env:
+          SOURCE_NAMES: ${{ steps.sources.outputs.names }}
+        run: |
+          if [ -n "$SOURCE_NAMES" ]; then
+            npm run fetch -- $SOURCE_NAMES
+          else
+            npm run fetch
+          fi
+
+      - name: Check whether data changed
+        id: changed
+        run: |
+          if diff -qr /tmp/space-data-before data >/dev/null; then
+            echo "data_changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "data_changed=true" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Save data
         uses: actions/cache/save@v4
