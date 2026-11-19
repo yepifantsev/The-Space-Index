@@ -630,8 +630,11 @@ export const renderers = {
           h('div', { class: 'muted' }, `${moon.illumination ?? '—'}% illuminated`),
         ),
       ),
-      h('div', { class: 'muted' }, `Sunrise ${formatDate(data.sunrise)} · Sunset ${formatDate(data.sunset)}`),
-      h('div', { class: 'muted' }, `Moonrise ${formatDate(data.moonrise)} · Moonset ${formatDate(data.moonset)}`),
+      h('div', { class: 'muted' }, `Moonrise `, h('strong', {}, `${formatDate(data.moonrise)}`), ` · Moonset `, h('strong', {}, `${formatDate(data.moonset)}`)),
+      h('div', { class: 'muted' }, `Sunrise `, h('strong', {}, `${formatDate(data.sunrise)}`), ` · Sunset `, h('strong', {}, `${formatDate(data.sunset)}`)),
+      h('div', { class: 'muted' }, `Altitude `, h('strong', {}, `${moon.altitude == null ? '—' : `${moon.altitude.toFixed(1)}°`}`)),
+      h('div', { class: 'muted' }, `Apparent magnitude `, h('strong', {}, `${moon.apparentMag == null ? '—' : moon.apparentMag.toFixed(2)}`)),
+      h('div', { class: 'muted' }, `Background sky glow `, h('strong', {}, `${moon.zenithSkySqm == null ? '—' : `${moon.zenithSkySqm.toFixed(2)} mag/arcsec²`}`)),
     )
   },
 

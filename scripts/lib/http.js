@@ -14,3 +14,14 @@ export async function fetchJson(url, { timeoutMs = 20000, headers = {} } = {}) {
   }
   return res.json()
 }
+
+export async function fetchText(url, { timeoutMs = 20000, headers = {} } = {}) {
+  const res = await fetch(url, {
+    headers: { 'User-Agent': USER_AGENT, Accept: 'text/html', ...headers },
+    signal: AbortSignal.timeout(timeoutMs),
+  })
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status} ${res.statusText} for ${url}`)
+  }
+  return res.text()
+}

@@ -14,7 +14,7 @@ cross-origin requests** — they only download static files.
 | Atmosphere transparency | [7Timer!](https://www.7timer.info/) transparency | `data/atmosphere-transparency.json` |
 | Dew point spread | [Open-Meteo](https://open-meteo.com/) temperature and dew point | `data/dew-point-spread.json` |
 | Wind | [Open-Meteo](https://open-meteo.com/) wind speed | `data/wind.json` |
-| Moon timeline | [Open-Meteo](https://open-meteo.com/) rise/set times and calculated lunar phase | `data/moon-timeline.json` |
+| Moon timeline | [Open-Meteo](https://open-meteo.com/) rise/set times · [USNO](https://aa.usno.navy.mil/data/AltAz) altitude and lunar sky calculations | `data/moon-timeline.json` |
 | Satellite tracking | [CelesTrak](https://celestrak.org/) GP elements (stations)    | `data/satellites.json`     |
 | Space news         | [Spaceflight News API](https://spaceflightnewsapi.net/)       | `data/news.json`           |
 
