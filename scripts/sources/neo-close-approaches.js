@@ -1,6 +1,21 @@
 import { fetchJson } from '../lib/http.js'
 
 const AU_TO_LD = 389.17240072
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+function parseCneosDate(value) {
+  const match = /^(\d{4})-([A-Z][a-z]{2})-(\d{2}) (\d{2}:\d{2})$/.exec(value)
+  if (!match) return Number.POSITIVE_INFINITY
+  const monthIndex = MONTHS.indexOf(match[2])
+  if (monthIndex < 0) return Number.POSITIVE_INFINITY
+  return Date.UTC(
+    Number(match[1]),
+    monthIndex,
+    Number(match[3]),
+    Number(match[4].slice(0, 2)),
+    Number(match[4].slice(3, 5)),
+  )
+}
 
 function estimateDiameterKm(absoluteMagnitude) {
   if (!Number.isFinite(absoluteMagnitude)) return null
@@ -28,6 +43,7 @@ export default {
       const diameterKm = estimateDiameterKm(absoluteMagnitude)
       return {
         name: row[index.des],
+        sbdbUrl: `https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html#/?sstr=${encodeURIComponent(row[index.des])}`,
         date: row[index.cd],
         missDistanceLd: distanceAu * AU_TO_LD,
         relativeVelocityKph: Number(row[index.v_rel]) * 3600,
@@ -37,7 +53,7 @@ export default {
     }).filter((object) =>
       Number.isFinite(object.missDistanceLd) &&
       Number.isFinite(object.relativeVelocityKph),
-    ).sort((a, b) => a.missDistanceLd - b.missDistanceLd)
+    ).sort((a, b) => parseCneosDate(a.date) - parseCneosDate(b.date))
 
     return { approaches }
   },

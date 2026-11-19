@@ -15,9 +15,9 @@ function formatEasternClock(value) {
 
 function formatEasternNavigation(value) {
   const date = new Date(value)
-  const month = new Intl.DateTimeFormat('en-US', { timeZone: EASTERN_TIME_ZONE, month: '2-digit' }).format(date)
-  const day = new Intl.DateTimeFormat('en-US', { timeZone: EASTERN_TIME_ZONE, day: '2-digit' }).format(date)
-  return `${month}/${day} ${formatEasternClock(date)}`
+  const month = new Intl.DateTimeFormat('en-US', { timeZone: EASTERN_TIME_ZONE, month: 'short' }).format(date)
+  const day = new Intl.DateTimeFormat('en-US', { timeZone: EASTERN_TIME_ZONE, day: 'numeric' }).format(date)
+  return `${month} ${day}, ${formatEasternClock(date)}`
 }
 
 function formatCneosDate(value) {
@@ -33,16 +33,6 @@ function formatCneosDate(value) {
     hour: 'numeric',
     minute: '2-digit',
   }).format(date)
-}
-
-function formatEasternDateHour(value) {
-  if (!value) return '—'
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return String(value)
-  const month = new Intl.DateTimeFormat('en-US', { timeZone: EASTERN_TIME_ZONE, month: '2-digit' }).format(date)
-  const day = new Intl.DateTimeFormat('en-US', { timeZone: EASTERN_TIME_ZONE, day: '2-digit' }).format(date)
-  const clock = formatEasternClock(date)
-  return `${month}/${day} ${clock}`
 }
 
 function svgElement(tag, attrs = {}, text) {
@@ -568,7 +558,7 @@ export const renderers = {
       'div',
       {},
       h('span', { class: 'big big-after', style: latest ? `color: ${kpColor(latest.kp)}` : undefined }, latest ? `Kp ${latest.kp}` : 'No Kp reading'),
-      latest && h('span', { class: 'muted' }, `as of ${formatEasternDateHour(latest.time)}`),
+      latest && h('span', { class: 'night-chart-range kp-as-of' }, `as of ${formatEasternNavigation(latest.time)}`),
       renderKpChart(data.kp),
     )
   },
@@ -714,13 +704,16 @@ export const renderers = {
       h('div', { class: 'muted' }, data.verdict ?? 'Active meteor shower forecast'),
       h(
         'ul',
-        { class: 'compact-list' },
+        { class: 'compact-list custom-bullet-list' },
         (data.showers ?? []).map((shower) =>
-          h('li', {},
-            h('strong', {}, shower.name),
-            h('span', { class: 'muted' }, ` — ZHR ${Math.round(shower.zhr)}`),
-            h('div', { class: 'zhr-meter' },
-              h('span', { style: `width: ${Math.max(2, Math.min(100, Number(shower.zhr) / 1.5))}%` }),
+          h('li', { class: 'custom-bullet meteor-bullet' },
+            h('span', { class: 'bullet-glyph', 'aria-hidden': 'true' }, '✨'),
+            h('div', { class: 'meteor-row-content' },
+              h('strong', {}, shower.name),
+              h('span', { class: 'muted' }, ` — ZHR ${Math.round(shower.zhr)}`),
+              h('div', { class: 'zhr-meter' },
+                h('span', { style: `width: ${Math.max(2, Math.min(100, Number(shower.zhr) / 1.5))}%` }),
+              ),
             ),
           ),
         ),
@@ -729,9 +722,13 @@ export const renderers = {
       (data.comets ?? []).length
         ? h(
             'ul',
-            { class: 'compact-list' },
+            { class: 'compact-list custom-bullet-list' },
             data.comets.map((comet) =>
-              h('li', {}, h('strong', {}, comet.name), ` — magnitude ${comet.magnitude.toFixed(1)}`),
+              h('li', { class: 'custom-bullet comet-bullet' },
+                h('span', { class: 'bullet-glyph comet-glyph', 'aria-hidden': 'true' }, '☄︎'),
+                h('strong', {}, comet.name),
+                ` — magnitude ${comet.magnitude.toFixed(1)}`,
+              ),
             ),
           )
         : h('p', { class: 'muted' }, 'No binocular-visible comets currently reported.'),
@@ -743,16 +740,32 @@ export const renderers = {
       { class: 'dense-card-content' },
       h(
         'ul',
-        { class: 'compact-list' },
+        { class: 'compact-list custom-bullet-list' },
         (data.approaches ?? []).map((object) =>
-          h('li', {},
-            h('strong', {}, object.name),
-            h('div', { class: 'muted' }, formatCneosDate(object.date)),
-            h('div', { class: 'muted' }, [
-              `${object.estimatedDiameterKm == null ? '—' : `${object.estimatedDiameterKm.toFixed(2)} km Ø`}`,
-              ` · ${(object.relativeVelocityKph / 3600).toFixed(2)} km/s`,
-              ` · ${object.missDistanceLd.toFixed(2)} LD`,
-            ].join('')),
+          h('li', {
+            class: object.missDistanceLd < 1
+              ? 'neo-approach neo-approach-critical'
+              : object.missDistanceLd < 5
+                ? 'neo-approach neo-approach-close'
+                : 'neo-approach',
+            style: `--rock-rotation: ${(object.name.charCodeAt(object.name.length - 1) * 7) % 360}deg`,
+          },
+            h('span', { class: 'bullet-glyph asteroid-glyph', 'aria-hidden': 'true' }, '🪨'),
+            h('strong', {},
+              h('a', {
+                href: object.sbdbUrl,
+                target: '_blank',
+                rel: 'noopener noreferrer',
+              }, object.name),
+              h('span', { class: 'muted' }, ` · ${formatCneosDate(object.date)}`),
+            ),
+            h('div', { class: 'neo-details muted' },
+              h('span', {}, object.estimatedDiameterKm == null
+                ? '—'
+                : `${Math.round(object.estimatedDiameterKm * 1000).toLocaleString()} m Ø`),
+              h('span', {}, `${(object.relativeVelocityKph / 3600).toFixed(1)} km/s`),
+              h('span', {}, `${object.missDistanceLd.toFixed(1)} LD`),
+            ),
           ),
         ),
       ),
