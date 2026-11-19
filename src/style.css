@@ -125,6 +125,32 @@ a {
   padding-left: 1rem;
 }
 
+.satellite-list {
+  padding-left: 1.1rem;
+}
+
+.satellite-item {
+  margin: 0.25rem 0 0.45rem;
+}
+
+.satellite-details {
+  display: block;
+  margin-left: 0.1rem;
+  color: #9aa0b4;
+  font-size: 0.78rem;
+}
+
+.satellite-row-muted,
+.satellite-row-muted strong,
+.satellite-row-muted .satellite-details {
+  color: #777d92;
+  opacity: 0.72;
+}
+
+.launch-status-bold {
+  font-weight: 700;
+}
+
 .custom-bullet-list {
   list-style: none;
   padding-left: 0 !important;

@@ -19,3 +19,24 @@ if (sources.length === 0) {
 }
 
 document.querySelector('#build-time').textContent = `Built ${new Date(__BUILD_TIME__).toLocaleString(undefined, { hour: 'numeric', minute: '2-digit' })}.`
+
+const locationTime = document.querySelector('#site-location-time')
+
+function formatLocationDateTime(date) {
+  const month = new Intl.DateTimeFormat('en-US', {
+    timeZone: __SITE_TIME_ZONE__,
+    month: 'short',
+  }).format(date)
+  const day = new Intl.DateTimeFormat('en-US', {
+    timeZone: __SITE_TIME_ZONE__,
+    day: 'numeric',
+  }).format(date)
+  return `${month} ${day}`
+}
+
+function updateLocationTime() {
+  locationTime.textContent = `${__SITE_LOCATION_NAME__} · ${formatLocationDateTime(new Date())}`
+}
+
+updateLocationTime()
+setInterval(updateLocationTime, 30 * 1000)

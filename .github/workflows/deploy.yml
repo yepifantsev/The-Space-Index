@@ -46,6 +46,7 @@ jobs:
           SITE_LAT: ${{ vars.SITE_LAT }}
           SITE_LON: ${{ vars.SITE_LON }}
           SITE_LOCATION_NAME: ${{ vars.SITE_LOCATION_NAME }}
+          SITE_TIME_ZONE: ${{ vars.SITE_TIME_ZONE }}
 
       - name: Save data
         uses: actions/cache/save@v4
@@ -60,6 +61,8 @@ jobs:
         run: npm run build
         env:
           BASE_PATH: ${{ steps.pages.outputs.base_path }}/
+          SITE_LOCATION_NAME: ${{ vars.SITE_LOCATION_NAME }}
+          SITE_TIME_ZONE: ${{ vars.SITE_TIME_ZONE }}
 
       - uses: actions/upload-pages-artifact@v3
         with:

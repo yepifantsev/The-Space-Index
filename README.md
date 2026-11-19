@@ -68,8 +68,11 @@ Variables already set in the shell or CI take precedence.
 | `SITE_LAT`           | `51.4769`       |
 | `SITE_LON`           | `-0.0005`       |
 | `SITE_LOCATION_NAME` | `Greenwich, UK` |
+| `SITE_TIME_ZONE` | `America/New_York` |
 
 `BASE_PATH` sets the URL base for the build (set automatically in CI for GitHub Pages).
+GitHub Pages builds read `SITE_LOCATION_NAME` and `SITE_TIME_ZONE` from repository Variables,
+with the same fallback behavior used by local builds.
 
 ## Deployment (GitHub Pages)
 

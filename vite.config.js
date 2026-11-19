@@ -5,6 +5,8 @@ export default defineConfig({
   base: process.env.BASE_PATH || '/',
   define: {
     __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
+    __SITE_LOCATION_NAME__: JSON.stringify(process.env.SITE_LOCATION_NAME || 'Greenwich, UK'),
+    __SITE_TIME_ZONE__: JSON.stringify(process.env.SITE_TIME_ZONE || 'America/New_York'),
   },
   server: {
     host: true,

@@ -20,11 +20,49 @@ function formatEasternNavigation(value) {
   return `${month} ${day}, ${formatEasternClock(date)}`
 }
 
+function formatLocationNavigation(value) {
+  if (!value) return '—'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return '—'
+  const month = new Intl.DateTimeFormat('en-US', { timeZone: __SITE_TIME_ZONE__, month: 'short' }).format(date)
+  const day = new Intl.DateTimeFormat('en-US', { timeZone: __SITE_TIME_ZONE__, day: 'numeric' }).format(date)
+  const time = new Intl.DateTimeFormat('en-US', {
+    timeZone: __SITE_TIME_ZONE__,
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(date).replace(':00', '')
+  return `${month} ${day}, ${time}`
+}
+
 function formatEasternDate(value) {
   const date = new Date(value)
   const month = new Intl.DateTimeFormat('en-US', { timeZone: EASTERN_TIME_ZONE, month: 'short' }).format(date)
   const day = new Intl.DateTimeFormat('en-US', { timeZone: EASTERN_TIME_ZONE, day: 'numeric' }).format(date)
   return `${month} ${day}`
+}
+
+function formatLaunchStatus(status) {
+  const labels = {
+    Go: 'Go for launch',
+    Success: 'Succeeded',
+    TBC: 'To be confirmed',
+    TBD: 'To be determined',
+    Hold: 'On hold',
+    Failure: 'Failed',
+    'In Flight': 'In flight',
+  }
+  return labels[status] ?? status
+}
+
+function launchStatusStyle(status) {
+  const colors = {
+    Go: '#67c9a2',
+    Success: '#67c9a2',
+    Hold: '#e5c95f',
+    Failure: '#d66b63',
+    'In Flight': '#e5c95f',
+  }
+  return colors[status] ? `color: ${colors[status]}` : undefined
 }
 
 function formatCneosDate(value) {
@@ -580,7 +618,18 @@ export const renderers = {
           {},
           h('strong', {}, l.name),
           h('br'),
-          h('span', { class: 'muted' }, [formatDate(l.net), l.status, l.location].filter(Boolean).join(' · ')),
+          h('span', { class: 'muted' }, formatLocationNavigation(l.net)),
+          l.status &&
+            h(
+              'span',
+              {
+                style: launchStatusStyle(l.status),
+                class: l.status === 'Success' ? 'launch-status launch-status-bold' : 'launch-status',
+              },
+              ` · ${formatLaunchStatus(l.status)}`,
+            ),
+          l.location &&
+            h('span', { class: 'muted launch-location' }, h('br'), l.location),
         ),
       ),
     ),
@@ -789,10 +838,24 @@ export const renderers = {
   satellites: (data) =>
     h(
       'ul',
-      {},
-      data.satellites.map((s) =>
-        h('li', {}, h('strong', {}, s.name), ` (NORAD ${s.noradId}) — epoch ${formatDate(s.epoch)}`),
-      ),
+      { class: 'satellite-list' },
+      [...(data.satellites ?? [])]
+        .sort((a, b) => {
+          const aTime = a.nextPass ? Date.parse(a.nextPass.time) : Number.POSITIVE_INFINITY
+          const bTime = b.nextPass ? Date.parse(b.nextPass.time) : Number.POSITIVE_INFINITY
+          if (Number.isNaN(aTime)) return 1
+          if (Number.isNaN(bTime)) return -1
+          return aTime - bTime
+        })
+        .map((s) =>
+        h(
+          'li',
+          { class: `satellite-item${s.nextPass.maxAltitude < 30 ? ' satellite-row-muted' : ''}` },
+          h('strong', {}, `${s.name}${/^((CSS|ISS)(?:\s|$))/i.test(s.name) ? ' ⭐ ' : ''}`),
+          s.nextPass &&
+            h('span', { class: 'satellite-details' }, `Next pass: ${formatLocationNavigation(s.nextPass.time)} · ${s.nextPass.maxAltitude.toFixed(0)}° · ${s.nextPass.direction}`),
+        ),
+        ),
     ),
 
   news: (data) =>
