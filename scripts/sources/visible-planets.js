@@ -60,8 +60,16 @@ function nextRiseSet(positions, nowMs) {
     const current = positions[i]
     const time = Date.parse(current.time)
     if (time < nowMs) continue
-    if (previous.altitude <= 0 && current.altitude > 0 && !rise) rise = current.time
-    if (previous.altitude >= 0 && current.altitude < 0 && !set) set = current.time
+    if (previous.altitude <= 0 && current.altitude > 0 && !rise) {
+      const previousTime = Date.parse(previous.time)
+      const fraction = -previous.altitude / (current.altitude - previous.altitude)
+      rise = new Date(previousTime + (time - previousTime) * fraction).toISOString()
+    }
+    if (previous.altitude >= 0 && current.altitude < 0 && !set) {
+      const previousTime = Date.parse(previous.time)
+      const fraction = previous.altitude / (previous.altitude - current.altitude)
+      set = new Date(previousTime + (time - previousTime) * fraction).toISOString()
+    }
   }
   return { rise, set }
 }
@@ -86,7 +94,7 @@ export default {
         '?format=text&OBJ_DATA=NO&MAKE_EPHEM=YES&EPHEM_TYPE=OBSERVER' +
         `&COMMAND='${planet.id}'&CENTER='coord@399'` +
         `&SITE_COORD='${eastLon},${lat},0'` +
-        `&START_TIME='${start}'&STOP_TIME='${stop}'&STEP_SIZE='60 min'` +
+        `&START_TIME='${start}'&STOP_TIME='${stop}'&STEP_SIZE='10 min'` +
         '&QUANTITIES=3,4,9,20'
       const text = await fetchText(url)
       const positions = parseHorizons(text)

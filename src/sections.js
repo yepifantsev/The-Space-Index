@@ -35,11 +35,29 @@ function formatCneosDate(value) {
   }).format(date)
 }
 
+function formatEasternDateHour(value) {
+  if (!value) return '—'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return String(value)
+  const month = new Intl.DateTimeFormat('en-US', { timeZone: EASTERN_TIME_ZONE, month: '2-digit' }).format(date)
+  const day = new Intl.DateTimeFormat('en-US', { timeZone: EASTERN_TIME_ZONE, day: '2-digit' }).format(date)
+  const clock = formatEasternClock(date)
+  return `${month}/${day} ${clock}`
+}
+
 function svgElement(tag, attrs = {}, text) {
   const element = document.createElementNS(SVG_NS, tag)
   for (const [name, value] of Object.entries(attrs)) element.setAttribute(name, String(value))
   if (text != null) element.textContent = text
   return element
+}
+
+function kpColor(kp) {
+  if (!Number.isFinite(kp)) return '#67c9a2'
+  if (kp >= 7) return '#f06b64'
+  if (kp >= 5) return '#f2a65a'
+  if (kp >= 3) return '#e5c95f'
+  return '#67c9a2'
 }
 
 function renderKpChart(readings = []) {
@@ -98,7 +116,7 @@ function renderKpChart(readings = []) {
 
     const barTop = y(reading.kp)
     const barWidth = Math.max(0, (x(slotEnd) - x(slotStart)) * 0.84)
-    const colors = reading.kp >= 7 ? '#f06b64' : reading.kp >= 5 ? '#f2a65a' : reading.kp >= 3 ? '#e5c95f' : '#67c9a2'
+    const colors = kpColor(reading.kp)
     chart.append(
       svgElement('rect', {
         x: x(slotStart),
@@ -549,8 +567,8 @@ export const renderers = {
     return h(
       'div',
       {},
-      h('span', { class: 'big big-after' }, latest ? `Kp ${latest.kp}` : 'No Kp reading'),
-      latest && h('span', { class: 'muted' }, `as of ${formatDate(latest.time)}`),
+      h('span', { class: 'big big-after', style: latest ? `color: ${kpColor(latest.kp)}` : undefined }, latest ? `Kp ${latest.kp}` : 'No Kp reading'),
+      latest && h('span', { class: 'muted' }, `as of ${formatEasternDateHour(latest.time)}`),
       renderKpChart(data.kp),
     )
   },

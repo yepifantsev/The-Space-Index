@@ -3,7 +3,7 @@ import { toUtcIso } from '../lib/time.js'
 
 export default {
   name: 'wind',
-  title: 'Wind',
+  title: 'Wind Forecast',
   attribution: { label: 'Open-Meteo', url: 'https://open-meteo.com/' },
   async fetch({ now = new Date() } = {}) {
     const lat = Number(process.env.SITE_LAT || 51.4769)
