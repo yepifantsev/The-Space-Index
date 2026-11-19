@@ -36,25 +36,59 @@ a {
 #app {
   flex: 1;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, 366px);
+  justify-content: center;
   gap: 1rem;
   align-items: start;
   padding: 0 1rem;
-  max-width: 1200px;
+  max-width: 1162px;
   margin: 0 auto;
   width: 100%;
   box-sizing: border-box;
 }
 
 .card {
+  width: 366px;
+  height: 366px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
   background: #151a2d;
   border: 1px solid #252b45;
   border-radius: 12px;
-  padding: 1rem 1.25rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.card-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+#atmosphere-transparency .card-body,
+#dew-point-spread .card-body,
+#wind .card-body {
+  overflow: hidden;
+}
+
+#launches,
+#news,
+#satellites {
+  font-size: 0.85rem;
+}
+
+#launches ul,
+#news ul,
+#satellites ul {
+  margin-top: 0.25rem;
+  margin-bottom: 0;
 }
 
 .card h2 {
   margin-top: 0;
+  margin-bottom: 0.2rem;
   font-size: 1.2rem;
 }
 
@@ -76,16 +110,9 @@ a {
 
 #launches {
   box-sizing: border-box;
-  height: 390px;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
 }
 
 #launches ul {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
   padding-right: 0.5rem;
 }
 
@@ -254,5 +281,13 @@ a {
 
 pre {
   overflow: auto;
-  font-size: 0.75rem;
+}
+
+@media (max-width: 398px) {
+  #app {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .card {
+    width: 100%;
+  }
 }

@@ -3,6 +3,22 @@ import { h, formatDate } from './h.js'
 const SVG_NS = 'http://www.w3.org/2000/svg'
 const KP_INTERVAL_MS = 3 * 60 * 60 * 1000
 const KP_WINDOW_MS = 24 * KP_INTERVAL_MS
+const EASTERN_TIME_ZONE = 'America/New_York'
+
+function formatEasternClock(value) {
+  return new Intl.DateTimeFormat('en-US', {
+    timeZone: EASTERN_TIME_ZONE,
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(new Date(value)).replace(':00', '')
+}
+
+function formatEasternNavigation(value) {
+  const date = new Date(value)
+  const month = new Intl.DateTimeFormat('en-US', { timeZone: EASTERN_TIME_ZONE, month: '2-digit' }).format(date)
+  const day = new Intl.DateTimeFormat('en-US', { timeZone: EASTERN_TIME_ZONE, day: '2-digit' }).format(date)
+  return `${month}/${day} ${formatEasternClock(date)}`
+}
 
 function svgElement(tag, attrs = {}, text) {
   const element = document.createElementNS(SVG_NS, tag)
@@ -49,8 +65,7 @@ function renderKpChart(readings = []) {
   const tickInterval = 12 * 60 * 60 * 1000
   for (let tick = Math.ceil(start / tickInterval) * tickInterval; tick <= now; tick += tickInterval) {
     const tickX = x(tick)
-    const date = new Date(tick)
-    const label = `${String(date.getUTCDate()).padStart(2, '0')} ${String(date.getUTCHours()).padStart(2, '0')}Z`
+    const label = formatEasternNavigation(tick)
     chart.append(
       svgElement('line', { x1: tickX, x2: tickX, y1: top, y2: bottom, class: 'kp-grid kp-grid-vertical' }),
       svgElement('text', { x: tickX, y: bottom + 18, class: 'kp-tick', 'text-anchor': 'middle' }, label),
@@ -86,7 +101,7 @@ function renderKpChart(readings = []) {
     svgElement('line', { x1: right, x2: right, y1: top, y2: bottom, class: 'kp-now' }),
     svgElement('text', { x: right - 4, y: top + 11, class: 'kp-now-label', 'text-anchor': 'end' }, 'NOW'),
     svgElement('text', { x: 15, y: top + plotHeight / 2, class: 'kp-axis-label', 'text-anchor': 'middle', transform: `rotate(-90 15 ${top + plotHeight / 2})` }, 'Kp'),
-    svgElement('text', { x: (left + right) / 2, y: 402, class: 'kp-axis-label', 'text-anchor': 'middle' }, 'Universal Time (UTC)'),
+    svgElement('text', { x: (left + right) / 2, y: 402, class: 'kp-axis-label', 'text-anchor': 'middle' }, 'Eastern Time'),
   )
 
   return chart
@@ -155,11 +170,11 @@ function renderNightSkyWindow(validHours, start) {
       cell.append(svgElement('title', {}, `${hour.time} UTC, ${row.label.toLowerCase()}: ${label}`))
       chart.append(cell)
 
-      if (rowIndex === 0 && hourIndex % 2 === 0) {
+      if (rowIndex === 0 && hourIndex % 4 === 0) {
         const date = new Date(hourStart)
         chart.append(
           svgElement('line', { x1: x(hourStart), x2: x(hourStart), y1: top, y2: top + rows.length * rowHeight, class: 'night-grid night-grid-vertical' }),
-          svgElement('text', { x: x(hourStart), y: top + rows.length * rowHeight + 17, class: 'night-time-label', 'text-anchor': 'middle' }, `${String(date.getUTCHours()).padStart(2, '0')}Z`),
+          svgElement('text', { x: x(hourStart), y: top + rows.length * rowHeight + 17, class: 'night-time-label', 'text-anchor': 'middle' }, formatEasternClock(hourStart)),
         )
       }
     })
@@ -239,13 +254,7 @@ function renderNightSkyChart(hours = []) {
   const chartHost = h('div', { class: 'night-chart-host' })
   const controls = h('div', { class: 'night-chart-controls' }, previous, range, next)
 
-  const formatUtc = (value) => {
-    const date = new Date(value)
-    const month = String(date.getUTCMonth() + 1).padStart(2, '0')
-    const day = String(date.getUTCDate()).padStart(2, '0')
-    const hour = String(date.getUTCHours()).padStart(2, '0')
-    return `${month}/${day} ${hour}Z`
-  }
+  const formatUtc = formatEasternNavigation
 
   function updateWindow() {
     const windowHours = validHours.slice(windowStart, windowStart + windowSize)
@@ -381,13 +390,13 @@ function renderObservingConditionsWindow(hours, start) {
       chart.append(cell)
     })
 
-    for (let i = 0; i < hours.length; i += 2) {
+    for (let i = 0; i < hours.length; i += 4) {
       const hourStart = Date.parse(hours[i].time)
       if (rowIndex === 0) {
         const date = new Date(hourStart)
         chart.append(
           svgElement('line', { x1: x(hourStart), x2: x(hourStart), y1: top, y2: top + rows.length * rowHeight, class: 'night-grid night-grid-vertical' }),
-          svgElement('text', { x: x(hourStart), y: top + rows.length * rowHeight + 17, class: 'night-time-label', 'text-anchor': 'middle' }, `${String(date.getUTCHours()).padStart(2, '0')}Z`),
+          svgElement('text', { x: x(hourStart), y: top + rows.length * rowHeight + 17, class: 'night-time-label', 'text-anchor': 'middle' }, formatEasternClock(hourStart)),
         )
       }
     }
@@ -412,10 +421,7 @@ function renderObservingConditionsChart(hours = []) {
   const chartHost = h('div', { class: 'night-chart-host' })
   const controls = h('div', { class: 'night-chart-controls' }, previous, range, next)
 
-  const formatUtc = (value) => {
-    const date = new Date(value)
-    return `${String(date.getUTCMonth() + 1).padStart(2, '0')}/${String(date.getUTCDate()).padStart(2, '0')} ${String(date.getUTCHours()).padStart(2, '0')}Z`
-  }
+  const formatUtc = formatEasternNavigation
 
   function updateWindow() {
     const windowHours = validHours.slice(windowStart, windowStart + windowSize)
@@ -485,11 +491,11 @@ function windSpeedColor(mph) {
 
 function renderStandaloneMetricWindow(hours, start, metric) {
   const width = 400
-  const height = 300
+  const height = 280
   const left = 58
   const right = 396
-  const top = 18
-  const bottom = 238
+  const top = 10
+  const bottom = 200
   const plotHeight = bottom - top
   const end = start + 24 * 60 * 60 * 1000
   const x = (time) => left + ((time - start) / (end - start)) * (right - left)
@@ -553,12 +559,39 @@ function renderStandaloneMetricWindow(hours, start, metric) {
     chart.append(bar)
   })
 
-  for (let i = 0; i < hours.length; i += 2) {
+  const currentHourStart = Math.floor(Date.now() / (60 * 60 * 1000)) * (60 * 60 * 1000)
+  if (currentHourStart >= start && currentHourStart < end) {
+    const currentHour = hours.find((hour) => {
+      const hourStart = Date.parse(hour.time)
+      return hourStart <= currentHourStart && hourStart + 60 * 60 * 1000 > currentHourStart
+    })
+    let currentValue
+    if (currentHour) {
+      if (metric.type === 'transparency') currentValue = Number(currentHour.extinction)
+      else if (metric.type === 'dew') {
+        const spreadC = Number(currentHour.spreadC)
+        currentValue = Number.isFinite(spreadC) ? spreadC * 9 / 5 : null
+      } else {
+        currentValue = Number(currentHour.speed)
+      }
+    }
+    const currentBarY = Number.isFinite(currentValue) ? y(currentValue) : bottom
+    chart.append(svgElement('rect', {
+      x: x(currentHourStart) + 1,
+      y: currentBarY,
+      width: Math.max(1, ((60 * 60 * 1000) / (24 * 60 * 60 * 1000)) * (right - left) - 2),
+      height: bottom - currentBarY,
+      rx: 2,
+      class: 'night-current-hour',
+    }))
+  }
+
+  for (let i = 0; i < hours.length; i += 4) {
     const hourStart = Date.parse(hours[i].time)
     const date = new Date(hourStart)
     chart.append(
       svgElement('line', { x1: x(hourStart), x2: x(hourStart), y1: top, y2: bottom, class: 'night-grid night-grid-vertical' }),
-      svgElement('text', { x: x(hourStart), y: bottom + 18, class: 'night-time-label', 'text-anchor': 'middle' }, `${String(date.getUTCHours()).padStart(2, '0')}Z`),
+      svgElement('text', { x: x(hourStart), y: bottom + 18, class: 'night-time-label', 'text-anchor': 'middle' }, formatEasternClock(hourStart)),
     )
   }
 
@@ -568,9 +601,9 @@ function renderStandaloneMetricWindow(hours, start, metric) {
   defs.append(gradient)
   chart.append(defs)
 
-  const legendY = 262
+  const legendY = 250
   chart.append(
-    svgElement('text', { x: left, y: 248, class: 'night-legend-title' }, metric.legendTitle),
+    svgElement('text', { x: left, y: 240, class: 'night-legend-title' }, metric.legendTitle),
     svgElement('rect', { x: left, y: legendY, width: right - left, height: 12, rx: 2, fill: `url(#${metric.type}-metric-gradient)` }),
     svgElement('text', { x: left, y: legendY + 27, class: 'night-time-label' }, metric.legendLeft),
     svgElement('text', { x: right, y: legendY + 27, class: 'night-time-label', 'text-anchor': 'end' }, metric.legendRight),
@@ -589,19 +622,19 @@ function renderStandaloneMetric(hours = [], metric) {
   const earliest = Date.parse(validHours[0].time)
   const latest = Date.parse(validHours.at(-1).time)
   const nowMs = Date.now()
-  const firstWindow = Math.floor(earliest / windowMs) * windowMs
-  const lastWindow = Math.floor(latest / windowMs) * windowMs
-  const currentWindow = Math.floor(nowMs / windowMs) * windowMs
-  let windowStartTime = Math.max(firstWindow, Math.min(currentWindow, lastWindow))
+  const currentHour = Math.floor(nowMs / hourMs) * hourMs
+  const firstWindow = Math.max(
+    Math.floor(earliest / hourMs) * hourMs,
+    currentHour - 24 * hourMs,
+  )
+  const lastWindow = latest - windowMs
+  let windowStartTime = Math.max(firstWindow, Math.min(currentHour, latest - windowMs))
   const previous = h('button', { class: 'night-chart-nav', type: 'button', title: 'Previous 24 hours', 'aria-label': 'Previous 24 hours' }, '‹')
   const next = h('button', { class: 'night-chart-nav', type: 'button', title: 'Next 24 hours', 'aria-label': 'Next 24 hours' }, '›')
   const range = h('span', { class: 'night-chart-range', 'aria-live': 'polite' })
   const chartHost = h('div', { class: 'night-chart-host' })
   const controls = h('div', { class: 'night-chart-controls' }, previous, range, next)
-  const formatUtc = (value) => {
-    const date = new Date(value)
-    return `${String(date.getUTCMonth() + 1).padStart(2, '0')}/${String(date.getUTCDate()).padStart(2, '0')} ${String(date.getUTCHours()).padStart(2, '0')}Z`
-  }
+  const formatUtc = formatEasternNavigation
 
   function updateWindow() {
     const windowEndTime = windowStartTime + windowMs
@@ -738,8 +771,8 @@ export const renderers = {
       max: 20,
       ticks: [{ value: 0, label: '0' }, { value: 5, label: '5' }, { value: 10, label: '10' }, { value: 15, label: '15' }, { value: 20, label: '20+' }],
       legendTitle: 'Wind',
-      legendLeft: 'Calm',
-      legendRight: 'Strong',
+      legendLeft: 'Calm (≤ 5 mph)',
+      legendRight: 'Strong (≥ 18 mph)',
       gradient: [
         { offset: '0%', color: '#061160' },
         { offset: '25%', color: '#4369a5' },
@@ -823,7 +856,7 @@ export function renderSection(source) {
     'section',
     { class: 'card', id: source.name },
     h('h2', {}, source.title ?? source.name),
-    body,
+    h('div', { class: 'card-body' }, body),
     h(
       'p',
       { class: 'meta' },
