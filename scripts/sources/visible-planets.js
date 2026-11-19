@@ -47,6 +47,7 @@ function parseHorizons(text) {
       dec: values[1],
       azimuth: values[2],
       altitude: values[3],
+      apparentMagnitude: values[4] ?? null,
     })
   }
   return positions
@@ -72,6 +73,14 @@ function nextRiseSet(positions, nowMs) {
     }
   }
   return { rise, set }
+}
+
+function maximumElevation(positions, nowMs) {
+  const upcoming = positions.filter((position) => Date.parse(position.time) >= nowMs)
+  if (upcoming.length === 0) return null
+  return upcoming.reduce((best, position) =>
+    !best || position.altitude > best.altitude ? position : best,
+  null)
 }
 
 export default {
@@ -103,6 +112,7 @@ export default {
         return !best || distance < best.distance ? { ...position, distance } : best
       }, null)
       const { rise, set } = nextRiseSet(positions, now.getTime())
+      const maximum = maximumElevation(positions, now.getTime())
       planets.push({
         name: planet.name,
         icon: planet.icon,
@@ -112,6 +122,9 @@ export default {
         constellation: nearest ? constellationFromRa(nearest.ra / 15) : null,
         rise,
         set,
+        maximumElevation: maximum?.altitude ?? null,
+        maximumElevationTime: maximum?.time ?? null,
+        apparentMagnitude: nearest?.apparentMagnitude ?? null,
       })
     }
 

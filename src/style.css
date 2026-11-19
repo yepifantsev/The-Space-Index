@@ -104,6 +104,12 @@ a {
   vertical-align: middle;
 }
 
+.planet-row-muted,
+.planet-row-muted .planet-icon {
+  color: #9aa0b4;
+  opacity: 0.72;
+}
+
 .planet-icon {
   display: inline-block;
   width: 1.25rem;
