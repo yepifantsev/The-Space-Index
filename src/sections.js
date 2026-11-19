@@ -14,7 +14,9 @@ function formatEasternClock(value) {
 }
 
 function formatEasternNavigation(value) {
+  if (!value) return '—'
   const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return '—'
   const month = new Intl.DateTimeFormat('en-US', { timeZone: EASTERN_TIME_ZONE, month: 'short' }).format(date)
   const day = new Intl.DateTimeFormat('en-US', { timeZone: EASTERN_TIME_ZONE, day: 'numeric' }).format(date)
   return `${month} ${day}, ${formatEasternClock(date)}`
@@ -713,9 +715,9 @@ export const renderers = {
       h('div', { class: 'meta' }, `Moonset `, h('strong', {}, `${formatDate(data.moonset)}`)),
       h('div', { class: 'meta mt-1' }, `Last phase `, h('strong', {}, `${moon.previousPhase?.name ?? '—'} · ${moon.previousPhase?.time ? formatEasternNavigation(moon.previousPhase.time) : '—'}`)),
       h('div', { class: 'meta' }, `Next phase `, h('strong', {}, `${moon.nextPhase?.name ?? '—'} · ${moon.nextPhase?.time ? formatEasternNavigation(moon.nextPhase.time) : '—'}`)),
-      h('div', { class: 'meta mt-1' }, `Altitude `, h('strong', {}, `${moon.altitude == null ? '—' : `${moon.altitude.toFixed(1)}°`}`)),
-      h('div', { class: 'meta' }, `Apparent magnitude `, h('strong', {}, `${moon.apparentMag == null ? '—' : moon.apparentMag.toFixed(2)}`)),
-      h('div', { class: 'meta' }, `Background sky glow `, h('strong', {}, `${moon.zenithSkySqm == null ? '—' : `${moon.zenithSkySqm.toFixed(2)} mag/arcsec²`}`)),
+      h('div', { class: 'meta mt-1' }, `Altitude `, h('strong', {}, `${Number.isFinite(moon.altitude) ? `${moon.altitude.toFixed(1)}°` : '—'}`)),
+      h('div', { class: 'meta' }, `Apparent magnitude `, h('strong', {}, `${Number.isFinite(moon.apparentMag) ? moon.apparentMag.toFixed(2) : '—'}`)),
+      h('div', { class: 'meta' }, `Background sky glow `, h('strong', {}, `${Number.isFinite(moon.zenithSkySqm) ? `${moon.zenithSkySqm.toFixed(2)} mag/arcsec²` : '—'}`)),
     )
   },
 
@@ -744,7 +746,7 @@ export const renderers = {
                 {},
                 planet.apparentMagnitude == null
                   ? h('strong', {}, '—')
-                  : h('strong', {}, planet.apparentMagnitude.toFixed(1)),
+                  : h('strong', {}, Number.isFinite(planet.apparentMagnitude) ? planet.apparentMagnitude.toFixed(1) : '—'),
                 ' / ',
                 planet.maximumElevationTime ? formatDate(planet.maximumElevationTime) : '—',
               ),
@@ -770,7 +772,7 @@ export const renderers = {
               h('strong', {}, shower.name),
               h('div', { class: 'muted' }, [
                 'Peak ZHR: ',
-                h('strong', {}, h('em', {}, String(Math.round(shower.zhr)))),
+                h('strong', {}, h('em', {}, Number.isFinite(shower.zhr) ? String(Math.round(shower.zhr)) : '—')),
                 shower.peakUtc ? ` (${formatEasternNavigation(shower.peakUtc)})` : '',
               ]),
               h('div', { class: 'zhr-meter' },
@@ -789,7 +791,7 @@ export const renderers = {
               h('li', { class: 'custom-bullet comet-bullet' },
                 h('span', { class: 'bullet-glyph comet-glyph', 'aria-hidden': 'true' }, '☄︎'),
                 h('strong', {}, comet.name),
-                ` — magnitude ${comet.magnitude.toFixed(1)}`,
+                ` — magnitude ${Number.isFinite(comet.magnitude) ? comet.magnitude.toFixed(1) : '—'}`,
               ),
             ),
           )
@@ -810,7 +812,7 @@ export const renderers = {
               : object.missDistanceLd < 5
                 ? 'neo-approach neo-approach-close'
                 : 'neo-approach',
-            style: `--rock-rotation: ${(object.name.charCodeAt(object.name.length - 1) * 7) % 360}deg`,
+            style: `--rock-rotation: ${(typeof object.name === 'string' && object.name.length ? (object.name.charCodeAt(object.name.length - 1) * 7) % 360 : 0)}deg`,
           },
             h('span', { class: 'bullet-glyph asteroid-glyph', 'aria-hidden': 'true' }, '🪨'),
             h('strong', {},
@@ -824,9 +826,15 @@ export const renderers = {
             h('div', { class: 'neo-details muted' },
               h('span', {}, object.estimatedDiameterKm == null
                 ? '—'
-                : `${Math.round(object.estimatedDiameterKm * 1000).toLocaleString()} m Ø`),
-              h('span', {}, `${(object.relativeVelocityKph / 3600).toFixed(1)} km/s`),
-              h('span', {}, `${object.missDistanceLd.toFixed(1)} LD`),
+                : Number.isFinite(object.estimatedDiameterKm)
+                  ? `${Math.round(object.estimatedDiameterKm * 1000).toLocaleString()} m Ø`
+                  : '—'),
+              h('span', {}, Number.isFinite(object.relativeVelocityKph)
+                ? `${(object.relativeVelocityKph / 3600).toFixed(1)} km/s`
+                : '—'),
+              h('span', {}, Number.isFinite(object.missDistanceLd)
+                ? `${object.missDistanceLd.toFixed(1)} LD`
+                : '—'),
             ),
           ),
         ),
@@ -851,9 +859,9 @@ export const renderers = {
         h(
           'li',
           { class: `satellite-item${s.nextPass.maxAltitude < 30 ? ' satellite-row-muted' : ''}` },
-          h('strong', {}, `${s.name}${/^((CSS|ISS)(?:\s|$))/i.test(s.name) ? ' ⭐ ' : ''}`),
+          h('strong', {}, `${typeof s.name === 'string' ? s.name : 'Unknown'}${typeof s.name === 'string' && /^((CSS|ISS)(?:\s|$))/i.test(s.name) ? ' ⭐ ' : ''}`),
           s.nextPass &&
-            h('span', { class: 'satellite-details' }, `Next pass: ${formatLocationNavigation(s.nextPass.time)} · ${s.nextPass.maxAltitude.toFixed(0)}° · ${s.nextPass.direction}`),
+            h('span', { class: 'satellite-details' }, `Next pass: ${formatLocationNavigation(s.nextPass.time)} · ${Number.isFinite(s.nextPass.maxAltitude) ? s.nextPass.maxAltitude.toFixed(0) : '—'}° · ${typeof s.nextPass.direction === 'string' ? s.nextPass.direction : '—'}`),
         ),
         ),
     ),

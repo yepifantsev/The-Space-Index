@@ -11,11 +11,11 @@ export default {
   async fetch() {
     const raw = await fetchJson(ENDPOINT)
     // Product is either [header, ...rows] (array of arrays) or an array of objects.
-    let rows
-    if (Array.isArray(raw[0])) {
+    let rows = []
+    if (Array.isArray(raw) && Array.isArray(raw[0])) {
       const [header, ...rest] = raw
       rows = rest.map((r) => Object.fromEntries(header.map((h, i) => [h, r[i]])))
-    } else {
+    } else if (Array.isArray(raw)) {
       rows = raw
     }
     const kp = rows
