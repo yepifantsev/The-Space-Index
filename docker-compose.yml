@@ -11,3 +11,4 @@ services:
       - SITE_LAT
       - SITE_LON
       - SITE_LOCATION_NAME
+      - SITE_TIME_ZONE

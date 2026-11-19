@@ -78,6 +78,10 @@ jobs:
       - name: Fetch data
         env:
           SOURCE_NAMES: ${{ steps.sources.outputs.names }}
+          SITE_LAT: ${{ vars.SITE_LAT }}
+          SITE_LON: ${{ vars.SITE_LON }}
+          SITE_LOCATION_NAME: ${{ vars.SITE_LOCATION_NAME }}
+          SITE_TIME_ZONE: ${{ vars.SITE_TIME_ZONE }}
         run: |
           if [ -n "$SOURCE_NAMES" ]; then
             npm run fetch -- $SOURCE_NAMES

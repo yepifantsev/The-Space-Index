@@ -161,7 +161,9 @@ export default {
   async fetch({ now = new Date() } = {}) {
     const lat = Number(process.env.SITE_LAT || 51.4769)
     const lon = Number(process.env.SITE_LON || -0.0005)
-    const locationName = process.env.SITE_LOCATION_NAME || 'Greenwich, UK'
+    const locationName = (process.env.SITE_LOCATION_NAME || 'Greenwich, UK')
+      .replace(/^["']|["']$/g, '')
+      .trim()
     const url =
       'https://api.open-meteo.com/v1/forecast' +
       `?latitude=${lat}&longitude=${lon}` +
