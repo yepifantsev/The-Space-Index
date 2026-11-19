@@ -441,6 +441,171 @@ function renderObservingConditionsChart(hours = []) {
   return h('div', { class: 'night-chart-wrap' }, controls, chartHost)
 }
 
+function transparencyExtinction(rating) {
+  return [0.2, 0.35, 0.45, 0.55, 0.65, 0.775, 0.925, 1.05][Math.max(1, Math.min(8, Number(rating))) - 1]
+}
+
+function transparencyRange(rating) {
+  return ['< 0.3', '0.3 - 0.4', '0.4 - 0.5', '0.5 - 0.6', '0.6 - 0.7', '0.7 - 0.9', '0.9 - 1.0', '> 1.0'][Math.max(1, Math.min(8, Number(rating))) - 1]
+}
+
+function transparencyColorStandalone(rating) {
+  if (!Number.isFinite(rating)) return '#343b50'
+  const navy = [6, 22, 70]
+  const gray = [170, 170, 170]
+  const amount = (Math.max(1, Math.min(8, rating)) - 1) / 7
+  return `rgb(${navy.map((channel, i) => Math.round(channel + (gray[i] - channel) * amount)).join(', ')})`
+}
+
+function dewSpreadColor(fahrenheit) {
+  if (!Number.isFinite(fahrenheit)) return '#343b50'
+  if (fahrenheit > 18) return '#061160'
+  if (fahrenheit >= 11) return '#4369a5'
+  if (fahrenheit >= 5) return '#78a9c8'
+  if (fahrenheit >= 2) return '#e6a04a'
+  return '#d66b63'
+}
+
+function windSpeedColor(mph) {
+  if (!Number.isFinite(mph)) return '#343b50'
+  if (mph <= 5) return '#061160'
+  if (mph <= 11) return '#4369a5'
+  if (mph <= 17) return '#78a9c8'
+  return '#d66b63'
+}
+
+function renderStandaloneMetricWindow(hours, start, metric) {
+  const width = 400
+  const height = 300
+  const left = 58
+  const right = 396
+  const top = 18
+  const bottom = 238
+  const plotHeight = bottom - top
+  const end = start + 24 * 60 * 60 * 1000
+  const x = (time) => left + ((time - start) / (end - start)) * (right - left)
+  const y = (value) => bottom - (Math.max(0, Math.min(metric.max, value)) / metric.max) * plotHeight
+  const chart = svgElement('svg', {
+    class: 'night-chart',
+    viewBox: `0 0 ${width} ${height}`,
+    role: 'img',
+    'aria-label': `${metric.title} forecast.`,
+  })
+  chart.append(svgElement('title', {}, `24-hour ${metric.title} forecast`))
+
+  metric.ticks.forEach((tick) => {
+    const tickY = y(tick.value)
+    chart.append(
+      svgElement('line', { x1: left, x2: right, y1: tickY, y2: tickY, class: 'night-grid' }),
+      svgElement('text', { x: left - 8, y: tickY + 4, class: 'night-tick', 'text-anchor': 'end' }, tick.label),
+    )
+  })
+  chart.append(svgElement(
+    'text',
+    { x: 10, y: (top + bottom) / 2, class: 'night-axis-label', 'text-anchor': 'middle', transform: `rotate(-90 10 ${(top + bottom) / 2})` },
+    metric.yLabel,
+  ))
+
+  hours.forEach((hour) => {
+    const hourStart = Date.parse(hour.time)
+    let value
+    let fill
+    let tooltip
+
+    if (metric.type === 'transparency') {
+      const rating = Number(hour.rating)
+      value = transparencyExtinction(rating)
+      fill = transparencyColorStandalone(rating)
+      tooltip = `${transparencyRange(rating)} mag/air mass`
+    } else if (metric.type === 'dew') {
+      const spreadC = Number(hour.spreadC)
+      value = Number.isFinite(spreadC) ? spreadC * 9 / 5 : null
+      fill = dewSpreadColor(value)
+      tooltip = `${value == null ? 'No data' : value.toFixed(1)}${value == null ? '' : ' °F'}`
+    } else {
+      value = Number(hour.speed)
+      fill = windSpeedColor(value)
+      tooltip = `${Number.isFinite(value) ? Math.round(value) : 'No data'}${Number.isFinite(value) ? ' mph' : ''}`
+    }
+    if (!Number.isFinite(value)) return
+
+    const duration = metric.type === 'transparency' ? 3 * 60 * 60 * 1000 : 60 * 60 * 1000
+    const barWidth = duration / (24 * 60 * 60 * 1000) * (right - left)
+    const barY = y(value)
+    const bar = svgElement('rect', {
+      x: x(hourStart) + 1,
+      y: barY,
+      width: Math.max(1, barWidth - 2),
+      height: bottom - barY,
+      rx: 2,
+      fill,
+      class: 'night-cell',
+    })
+    bar.append(svgElement('title', {}, tooltip))
+    chart.append(bar)
+  })
+
+  for (let i = 0; i < hours.length; i += 2) {
+    const hourStart = Date.parse(hours[i].time)
+    const date = new Date(hourStart)
+    chart.append(
+      svgElement('line', { x1: x(hourStart), x2: x(hourStart), y1: top, y2: bottom, class: 'night-grid night-grid-vertical' }),
+      svgElement('text', { x: x(hourStart), y: bottom + 18, class: 'night-time-label', 'text-anchor': 'middle' }, `${String(date.getUTCHours()).padStart(2, '0')}Z`),
+    )
+  }
+
+  const defs = svgElement('defs')
+  const gradient = svgElement('linearGradient', { id: `${metric.type}-metric-gradient`, x1: '0%', x2: '100%' })
+  metric.gradient.forEach((stop) => gradient.append(svgElement('stop', { offset: stop.offset, 'stop-color': stop.color })))
+  defs.append(gradient)
+  chart.append(defs)
+
+  const legendY = 262
+  chart.append(
+    svgElement('text', { x: left, y: 248, class: 'night-legend-title' }, metric.legendTitle),
+    svgElement('rect', { x: left, y: legendY, width: right - left, height: 12, rx: 2, fill: `url(#${metric.type}-metric-gradient)` }),
+    svgElement('text', { x: left, y: legendY + 27, class: 'night-time-label' }, metric.legendLeft),
+    svgElement('text', { x: right, y: legendY + 27, class: 'night-time-label', 'text-anchor': 'end' }, metric.legendRight),
+  )
+  return chart
+}
+
+function renderStandaloneMetric(hours = [], metric) {
+  const validHours = hours
+    .filter((hour) => Number.isFinite(Date.parse(hour.time)))
+    .sort((first, second) => Date.parse(first.time) - Date.parse(second.time))
+  if (validHours.length === 0) return h('p', { class: 'muted' }, 'No hourly forecast available.')
+
+  const windowSize = 24
+  const hourMs = 60 * 60 * 1000
+  const currentHourIndex = validHours.findIndex((hour) => Date.parse(hour.time) >= Date.now() - hourMs)
+  let windowStart = currentHourIndex < 0 ? 0 : currentHourIndex
+  const previous = h('button', { class: 'night-chart-nav', type: 'button', title: 'Previous 24 hours', 'aria-label': 'Previous 24 hours' }, '‹')
+  const next = h('button', { class: 'night-chart-nav', type: 'button', title: 'Next 24 hours', 'aria-label': 'Next 24 hours' }, '›')
+  const range = h('span', { class: 'night-chart-range', 'aria-live': 'polite' })
+  const chartHost = h('div', { class: 'night-chart-host' })
+  const controls = h('div', { class: 'night-chart-controls' }, previous, range, next)
+  const formatUtc = (value) => {
+    const date = new Date(value)
+    return `${String(date.getUTCMonth() + 1).padStart(2, '0')}/${String(date.getUTCDate()).padStart(2, '0')} ${String(date.getUTCHours()).padStart(2, '0')}Z`
+  }
+
+  function updateWindow() {
+    const windowHours = validHours.slice(windowStart, windowStart + windowSize)
+    if (windowHours.length === 0) return
+    const windowStartTime = Date.parse(windowHours[0].time)
+    const windowEndTime = Math.min(windowStartTime + windowSize * hourMs, Date.parse(windowHours.at(-1).time) + hourMs)
+    previous.disabled = windowStart === 0
+    next.disabled = windowStart + windowSize >= validHours.length
+    range.textContent = `${formatUtc(windowStartTime)} - ${formatUtc(windowEndTime)}`
+    chartHost.replaceChildren(renderStandaloneMetricWindow(windowHours, windowStartTime, metric))
+  }
+  previous.addEventListener('click', () => { windowStart = Math.max(0, windowStart - windowSize); updateWindow() })
+  next.addEventListener('click', () => { if (windowStart + windowSize < validHours.length) { windowStart += windowSize; updateWindow() } })
+  updateWindow()
+  return h('div', { class: 'night-chart-wrap' }, controls, chartHost)
+}
+
 // One renderer per data source (keyed by source name). Each receives the `data` field of the JSON file.
 export const renderers = {
   'space-weather': (data) => {
@@ -476,8 +641,58 @@ export const renderers = {
       renderNightSkyChart(data.forecastHours ?? data.nightHours),
     ),
 
-  'observing-conditions': (data) =>
-    h('div', {}, renderObservingConditionsChart(data.forecast ?? [])),
+  'atmosphere-transparency': (data) =>
+    renderStandaloneMetric(data.forecast ?? [], {
+      type: 'transparency',
+      title: 'Atmosphere Transparency',
+      yLabel: 'Extinction (mag / air mass)',
+      max: 1,
+      ticks: [{ value: 0, label: '0.0' }, { value: 0.5, label: '0.5' }, { value: 1, label: '1.0+' }],
+      legendTitle: 'Transparency',
+      legendLeft: 'Exceptional (< 0.3)',
+      legendRight: 'Very poor (> 1.0)',
+      gradient: [
+        { offset: '0%', color: '#061160' },
+        { offset: '100%', color: '#aaaaaa' },
+      ],
+    }),
+
+  'dew-point-spread': (data) =>
+    renderStandaloneMetric(data.forecast ?? [], {
+      type: 'dew',
+      title: 'Dew Point Spread',
+      yLabel: 'Dew Point Spread',
+      max: 18,
+      ticks: [{ value: 0, label: '≤ 1°F' }, { value: 5, label: '5°F' }, { value: 11, label: '11°F' }, { value: 18, label: '> 18°F' }],
+      legendTitle: 'Dew point spread',
+      legendLeft: 'Bone dry (> 18°F)',
+      legendRight: 'Saturation / Fog (≤ 1°F)',
+      gradient: [
+        { offset: '0%', color: '#061160' },
+        { offset: '25%', color: '#4369a5' },
+        { offset: '50%', color: '#78a9c8' },
+        { offset: '75%', color: '#e6a04a' },
+        { offset: '100%', color: '#d66b63' },
+      ],
+    }),
+
+  'wind': (data) =>
+    renderStandaloneMetric(data.forecast ?? [], {
+      type: 'wind',
+      title: 'Wind',
+      yLabel: 'Wind Speed (mph)',
+      max: 20,
+      ticks: [{ value: 0, label: '0' }, { value: 5, label: '5' }, { value: 10, label: '10' }, { value: 15, label: '15' }, { value: 20, label: '20+' }],
+      legendTitle: 'Wind',
+      legendLeft: 'Calm',
+      legendRight: 'Strong',
+      gradient: [
+        { offset: '0%', color: '#061160' },
+        { offset: '35%', color: '#4369a5' },
+        { offset: '65%', color: '#78a9c8' },
+        { offset: '100%', color: '#d66b63' },
+      ],
+    }),
 
   'moon-timeline': (data) => {
     const moon = data.moon ?? {}

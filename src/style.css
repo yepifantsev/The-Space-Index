@@ -219,6 +219,12 @@ a {
   font-weight: 600;
 }
 
+.night-tick,
+.night-axis-label {
+  fill: #aab1c2;
+  font-size: 12px;
+}
+
 .night-grid {
   stroke: #343b50;
   stroke-width: 1;
