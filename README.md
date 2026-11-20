@@ -76,10 +76,23 @@ with the same fallback behavior used by local builds.
 
 ## Deployment (GitHub Pages)
 
-`.github/workflows/deploy.yml` runs on every push to `main`, every 6 hours (cron), and on demand.
-It fetches data, builds the site and deploys `dist/` to GitHub Pages. The last fetched data is
-cached between runs so failing sources fall back to their previous values.
+GitHub Actions uses `.github/workflows/reusable-deploy.yml` to restore cached data, fetch
+selected sources, test and build the site, and deploy `dist/` to GitHub Pages.
+
+Separate scheduled workflows keep each source group on an appropriate refresh cadence:
+
+| Workflow | Schedule | Sources |
+| --- | --- | --- |
+| `hourly.yml` | Every hour | Night forecast, dew point spread, wind |
+| `three-hour.yml` | Every 3 hours | Space weather, atmosphere transparency |
+| `six-hour.yml` | Every 6 hours | Launches, satellites, news |
+| `twelve-hour.yml` | Every 12 hours | Moon timeline, meteor showers/comets |
+| `daily.yml` | Every day | Visible planets, NEO close approaches |
+| `deploy-on-push.yml` | Pushes to `main` or manual dispatch | All sources |
+
+Each workflow restores the last-known-good JSON cache before fetching. Failing sources keep
+their previous values, while source failures do not prevent the rest of the site from building.
 
 One-time setup: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
-Optionally set `SITE_LAT`, `SITE_LON` and `SITE_LOCATION_NAME` under
+Set `SITE_LAT`, `SITE_LON`, `SITE_LOCATION_NAME`, and `SITE_TIME_ZONE` under
 **Settings → Secrets and variables → Actions → Variables**.

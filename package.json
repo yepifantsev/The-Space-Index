@@ -15,7 +15,8 @@
   },
   "devDependencies": {
     "jsdom": "^31.0.1",
-    "vite": "^8.3.0"
+    "vite": "^8.3.0",
+    "yaml": "^2.9.1"
   },
   "dependencies": {
     "satellite.js": "^7.2.0"

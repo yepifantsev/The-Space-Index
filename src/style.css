@@ -450,6 +450,12 @@ pre {
   .card {
     width: 100%;
   }
+  .footer-built {
+    display: block;
+  }
+  .footer-built .footer-separator {
+    display: none;
+  }
   .personal-project {
     width: 100%;
   }
