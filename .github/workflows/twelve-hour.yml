@@ -1,0 +1,18 @@
+name: 12-hour moon and meteors
+run-name: "12-hour moon and meteors: ${{ github.event_name }}"
+
+on:
+  schedule:
+    - cron: "20 */12 * * *"
+  workflow_dispatch:
+
+jobs:
+  refresh:
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/reusable-deploy.yml
+    with:
+      source_names: "moon-timeline celestial-events"
+      run_label: "12-hour moon and meteors"

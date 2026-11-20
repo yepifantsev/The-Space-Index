@@ -1,0 +1,18 @@
+name: Deploy code and all data
+run-name: "All sources: ${{ github.event_name }}"
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  refresh:
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/reusable-deploy.yml
+    with:
+      source_names: ""
+      run_label: "All sources"

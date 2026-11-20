@@ -1,15 +1,17 @@
-name: Fetch data, build and deploy
+name: Reusable fetch and deploy
 
 on:
-  push:
-    branches: [main]
-  schedule:
-    - cron: "17 * * * *"
-    - cron: "18 */3 * * *"
-    - cron: "19 */6 * * *"
-    - cron: "20 */12 * * *"
-    - cron: "21 17 * * *"
-  workflow_dispatch:
+  workflow_call:
+    inputs:
+      source_names:
+        description: Space-separated source names, or empty to fetch all sources
+        required: false
+        default: ""
+        type: string
+      run_label:
+        description: Human-readable source group label
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -32,10 +34,8 @@ jobs:
           cache: npm
 
       - run: npm ci
-
       - run: npm test
 
-      # Restore last known good data so a failing source keeps its previous values.
       - name: Restore previous data
         uses: actions/cache/restore@v4
         with:
@@ -43,41 +43,15 @@ jobs:
           key: space-data-${{ github.run_id }}
           restore-keys: space-data-
 
-      - name: Select scheduled sources
-        id: sources
+      - name: Report source group
         env:
-          SCHEDULE: ${{ github.event.schedule }}
+          RUN_LABEL: ${{ inputs.run_label }}
         run: |
-          case "$SCHEDULE" in
-            "17 * * * *")
-              echo "names=night-forecast dew-point-spread wind" >> "$GITHUB_OUTPUT"
-              ;;
-            "18 */3 * * *")
-              echo "names=space-weather atmosphere-transparency" >> "$GITHUB_OUTPUT"
-              ;;
-            "19 */6 * * *")
-              echo "names=launches satellites news" >> "$GITHUB_OUTPUT"
-              ;;
-            "20 */12 * * *")
-              echo "names=moon-timeline celestial-events" >> "$GITHUB_OUTPUT"
-              ;;
-            "21 17 * * *")
-              echo "names=visible-planets neo-close-approaches" >> "$GITHUB_OUTPUT"
-              ;;
-            "")
-              echo "names=" >> "$GITHUB_OUTPUT"
-              ;;
-          esac
-
-      - name: Save data snapshot before fetch
-        run: |
-          rm -rf /tmp/space-data-before
-          mkdir -p /tmp/space-data-before
-          cp -a data/. /tmp/space-data-before/
+          echo "## Data source group: $RUN_LABEL" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Fetch data
         env:
-          SOURCE_NAMES: ${{ steps.sources.outputs.names }}
+          SOURCE_NAMES: ${{ inputs.source_names }}
           SITE_LAT: ${{ vars.SITE_LAT }}
           SITE_LON: ${{ vars.SITE_LON }}
           SITE_LOCATION_NAME: ${{ vars.SITE_LOCATION_NAME }}
@@ -87,15 +61,6 @@ jobs:
             npm run fetch -- $SOURCE_NAMES
           else
             npm run fetch
-          fi
-
-      - name: Check whether data changed
-        id: changed
-        run: |
-          if diff -qr /tmp/space-data-before data >/dev/null; then
-            echo "data_changed=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "data_changed=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Save data
