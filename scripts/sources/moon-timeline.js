@@ -1,4 +1,5 @@
 import { fetchJson, fetchText } from '../lib/http.js'
+import { DEFAULT_LOCATION } from '../lib/location.js'
 import { toUtcIso } from '../lib/time.js'
 
 const SYNODIC_MONTH_DAYS = 29.53058867
@@ -159,8 +160,8 @@ export default {
     { label: 'USNO', url: 'https://aa.usno.navy.mil/data/AltAz' },
   ],
   async fetch({ now = new Date() } = {}) {
-    const lat = Number(process.env.SITE_LAT || 51.4769)
-    const lon = Number(process.env.SITE_LON || -0.0005)
+    const lat = Number(process.env.SITE_LAT || DEFAULT_LOCATION.lat)
+    const lon = Number(process.env.SITE_LON || DEFAULT_LOCATION.lon)
     const locationName = (process.env.SITE_LOCATION_NAME || 'Greenwich, UK')
       .replace(/^["']|["']$/g, '')
       .trim()

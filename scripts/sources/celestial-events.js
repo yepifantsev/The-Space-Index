@@ -1,4 +1,5 @@
 import { fetchJson } from '../lib/http.js'
+import { DEFAULT_LOCATION } from '../lib/location.js'
 
 export default {
   name: 'celestial-events',
@@ -8,8 +9,8 @@ export default {
     { label: 'COBS', url: 'https://www.cobs.si/' },
   ],
   async fetch({ now = new Date() } = {}) {
-    const lat = Number(process.env.SITE_LAT || 51.4769)
-    const lon = Number(process.env.SITE_LON || -0.0005)
+    const lat = Number(process.env.SITE_LAT || DEFAULT_LOCATION.lat)
+    const lon = Number(process.env.SITE_LON || DEFAULT_LOCATION.lon)
     const meteorUrl =
       'https://meteorshowercal.com/api/v1/tonight' +
       `?lat=${lat}&lon=${lon}`
