@@ -101,3 +101,26 @@ for (const name of names) {
     assert.equal(node.tagName, 'SECTION')
   })
 }
+
+test('atmosphere-transparency: min controls the chart baseline', () => {
+  const node = renderers['atmosphere-transparency'](goodData['atmosphere-transparency'])
+  const tickLines = [...node.querySelectorAll('line.night-grid')]
+  const minTick = tickLines.find((line) => line.getAttribute('y1') === '200')
+
+  assert.ok(minTick)
+  assert.equal(minTick.getAttribute('y1'), '200')
+
+  const valueBar = node.querySelector('rect.night-cell')
+  assert.ok(valueBar)
+  assert.equal(valueBar.getAttribute('y'), '124')
+})
+
+test('standalone metrics without min keep their original zero baseline', () => {
+  const dewNode = renderers['dew-point-spread'](goodData['dew-point-spread'])
+  const dewBar = dewNode.querySelector('rect.night-cell')
+  assert.equal(dewBar.getAttribute('y'), '105')
+
+  const windNode = renderers.wind(goodData.wind)
+  const windBar = windNode.querySelector('rect.night-cell')
+  assert.equal(windBar.getAttribute('y'), '124')
+})
