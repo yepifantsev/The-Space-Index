@@ -1,12 +1,13 @@
 import { fetchJson } from '../lib/http.js'
+import { DEFAULT_LOCATION } from '../lib/location.js'
 
 export default {
   name: 'atmosphere-transparency',
   title: 'Atmosphere Transparency',
   attribution: { label: '7Timer!', url: 'https://www.7timer.info/' },
   async fetch({ now = new Date() } = {}) {
-    const lat = Number(process.env.SITE_LAT || 51.4769)
-    const lon = Number(process.env.SITE_LON || -0.0005)
+    const lat = Number(process.env.SITE_LAT || DEFAULT_LOCATION.lat)
+    const lon = Number(process.env.SITE_LON || DEFAULT_LOCATION.lon)
     const raw = await fetchJson(
       'https://www.7timer.info/bin/api.pl' +
       `?lon=${lon}&lat=${lat}&product=astro&output=json`,

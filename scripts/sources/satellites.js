@@ -1,5 +1,6 @@
 import { fetchJson, fetchText } from '../lib/http.js'
 import * as satellite from 'satellite.js'
+import { DEFAULT_LOCATION } from '../lib/location.js'
 import { toUtcIso } from '../lib/time.js'
 
 // CelesTrak general perturbations (GP) elements for the visual-satellite group.
@@ -75,7 +76,7 @@ export default {
   name: 'satellites',
   title: 'Upcoming Satellite Passes',
   attribution: { label: 'CelesTrak', url: 'https://celestrak.org/' },
-  async fetch({ now = new Date(), lat = Number(process.env.SITE_LAT || 51.4769), lon = Number(process.env.SITE_LON || -0.0005) } = {}) {
+  async fetch({ now = new Date(), lat = Number(process.env.SITE_LAT || DEFAULT_LOCATION.lat), lon = Number(process.env.SITE_LON || DEFAULT_LOCATION.lon) } = {}) {
     const [raw, sunRaw] = await Promise.all([
       fetchText(ENDPOINT),
       fetchJson(

@@ -390,7 +390,11 @@ function renderStandaloneMetricWindow(hours, start, metric) {
   const plotHeight = bottom - top
   const end = start + 24 * 60 * 60 * 1000
   const x = (time) => left + ((time - start) / (end - start)) * (right - left)
-  const y = (value) => bottom - (Math.max(0, Math.min(metric.max, value)) / metric.max) * plotHeight
+  const min = Number.isFinite(metric.min) ? metric.min : 0
+  const max = Number.isFinite(metric.max) && metric.max > min ? metric.max : min + 1
+  const y = Number.isFinite(metric.min)
+    ? (value) => bottom - ((Math.max(min, Math.min(max, value)) - min) / (max - min)) * plotHeight
+    : (value) => bottom - (Math.max(0, Math.min(max, value)) / max) * plotHeight
   const chart = svgElement('svg', {
     class: 'night-chart',
     viewBox: `0 0 ${width} ${height}`,
@@ -636,8 +640,16 @@ export const renderers = {
       type: 'transparency',
       title: 'Atmosphere Transparency',
       yLabel: 'Extinction (mag / air mass)',
-      max: 1,
-      ticks: [{ value: 0, label: '0.0' }, { value: 0.5, label: '0.5' }, { value: 1, label: '1.0+' }],
+      min: 0.2,
+      max: 1.2,
+      ticks: [
+        { value: 0.2, label: '0.2' }, 
+        { value: 0.4, label: '0.4' }, 
+        { value: 0.6, label: '0.6' }, 
+        { value: 0.8, label: '0.8' }, 
+        { value: 1, label: '1.0' }, 
+        { value: 1.2, label: '1.2+' }
+      ],
       legendTitle: 'Transparency',
       legendLeft: 'Exceptional (< 0.3)',
       legendRight: 'Very poor (> 1.0)',

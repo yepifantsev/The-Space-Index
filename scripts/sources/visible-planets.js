@@ -1,4 +1,5 @@
 import { fetchText } from '../lib/http.js'
+import { DEFAULT_LOCATION } from '../lib/location.js'
 
 const PLANETS = [
   { name: 'Mercury', id: '199', icon: '☿' },
@@ -88,8 +89,8 @@ export default {
   title: 'Visible Planets Tonight',
   attribution: { label: 'NASA/JPL Horizons', url: 'https://ssd.jpl.nasa.gov/horizons/' },
   async fetch({ now = new Date() } = {}) {
-    const lat = Number(process.env.SITE_LAT || 51.4769)
-    const lon = Number(process.env.SITE_LON || -0.0005)
+    const lat = Number(process.env.SITE_LAT || DEFAULT_LOCATION.lat)
+    const lon = Number(process.env.SITE_LON || DEFAULT_LOCATION.lon)
     const eastLon = lon >= 0 ? lon : 360 + lon
     const formatHorizonsDate = (date) =>
       `${date.getUTCFullYear()}-${MONTHS[date.getUTCMonth()]}-${String(date.getUTCDate()).padStart(2, '0')} ${String(date.getUTCHours()).padStart(2, '0')}:00`
