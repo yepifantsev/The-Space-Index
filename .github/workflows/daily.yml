@@ -2,8 +2,6 @@ name: Daily planets and NEOs
 run-name: "Daily planets and NEOs: ${{ github.event_name }}"
 
 on:
-  schedule:
-    - cron: "21 17 * * *"
   workflow_dispatch:
 
 jobs:
