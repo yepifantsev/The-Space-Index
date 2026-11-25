@@ -10,18 +10,18 @@ async function readWorkflow(name) {
   return parse(await readFile(path.join(workflowDir, name), 'utf8'))
 }
 
-const scheduleFiles = [
-  ['hourly.yml', '17 * * * *', 'night-forecast dew-point-spread wind', 'Hourly weather'],
-  ['three-hour.yml', '18 */3 * * *', 'space-weather atmosphere-transparency', '3-hour weather'],
-  ['six-hour.yml', '19 */6 * * *', 'launches satellites news', '6-hour launches and satellites'],
-  ['twelve-hour.yml', '20 */12 * * *', 'moon-timeline celestial-events', '12-hour moon and meteors'],
-  ['daily.yml', '21 17 * * *', 'visible-planets neo-close-approaches', 'Daily planets and NEOs'],
+const dispatchFiles = [
+  ['hourly.yml', 'night-forecast dew-point-spread wind', 'Hourly weather'],
+  ['three-hour.yml', 'space-weather atmosphere-transparency', '3-hour weather'],
+  ['six-hour.yml', 'launches satellites news', '6-hour launches and satellites'],
+  ['twelve-hour.yml', 'moon-timeline celestial-events', '12-hour moon and meteors'],
+  ['daily.yml', 'visible-planets neo-close-approaches', 'Daily planets and NEOs'],
 ]
 
-test('each scheduled workflow has exactly one cron and one source group', async () => {
-  for (const [file, cron, sources, label] of scheduleFiles) {
+test('each externally scheduled workflow uses manual dispatch and one source group', async () => {
+  for (const [file, sources, label] of dispatchFiles) {
     const workflow = await readWorkflow(file)
-    assert.deepEqual(workflow.on.schedule.map((entry) => entry.cron), [cron])
+    assert.ok(!Object.hasOwn(workflow.on, 'schedule'))
     assert.ok(Object.hasOwn(workflow.on, 'workflow_dispatch'))
 
     const refresh = workflow.jobs.refresh
@@ -42,6 +42,8 @@ test('push and manual deploy fetch all sources', async () => {
 test('reusable deploy workflow fetches and deploys Pages', async () => {
   const workflow = await readWorkflow('reusable-deploy.yml')
   assert.ok(workflow.on.workflow_call)
+  assert.equal(workflow.concurrency.group, 'pages')
+  assert.equal(workflow.concurrency['cancel-in-progress'], true)
   assert.ok(workflow.jobs.build)
   assert.ok(workflow.jobs.deploy)
   assert.equal(workflow.jobs.deploy.needs, 'build')

@@ -2,8 +2,6 @@ name: 3-hour weather data
 run-name: "3-hour weather: ${{ github.event_name }}"
 
 on:
-  schedule:
-    - cron: "18 */3 * * *"
   workflow_dispatch:
 
 jobs:

@@ -79,16 +79,25 @@ with the same fallback behavior used by local builds.
 GitHub Actions uses `.github/workflows/reusable-deploy.yml` to restore cached data, fetch
 selected sources, test and build the site, and deploy `dist/` to GitHub Pages.
 
-Separate scheduled workflows keep each source group on an appropriate refresh cadence:
+Separate externally scheduled workflows keep each source group on an appropriate refresh
+cadence through cron-job.org:
 
-| Workflow | Schedule | Sources |
+| Workflow | cron-job.org schedule (UTC) | Sources |
 | --- | --- | --- |
-| `hourly.yml` | Every hour | Night forecast, dew point spread, wind |
-| `three-hour.yml` | Every 3 hours | Space weather, atmosphere transparency |
-| `six-hour.yml` | Every 6 hours | Launches, satellites, news |
-| `twelve-hour.yml` | Every 12 hours | Moon timeline, meteor showers/comets |
-| `daily.yml` | Every day | Visible planets, NEO close approaches |
+| `hourly.yml` | `17 * * * *` - every hour | Night forecast, dew point spread, wind |
+| `three-hour.yml` | `18 */3 * * *` - every 3 hours | Space weather, atmosphere transparency |
+| `six-hour.yml` | `19 */6 * * *` - every 6 hours | Launches, satellites, news |
+| `twelve-hour.yml` | `20 */12 * * *` - every 12 hours | Moon timeline, meteor showers/comets |
+| `daily.yml` | `21 17 * * *` - every day | Visible planets, NEO close approaches |
 | `deploy-on-push.yml` | Pushes to `main` or manual dispatch | All sources |
+
+The cron jobs POST to each workflow's GitHub Actions `workflow_dispatch` endpoint using
+the fine-grained PAT. Restrict the PAT to this repository with **Actions: Read and write**
+and store it only in cron-job.org's protected job settings. The PAT expires on **November 25,
+2027**; renew it before that date and update the cron-job.org jobs.
+
+The shared Pages deployment concurrency group cancels an older queued or running deployment
+when a newer refresh starts, preventing overlapping runs.
 
 Each workflow restores the last-known-good JSON cache before fetching. Failing sources keep
 their previous values, while source failures do not prevent the rest of the site from building.
