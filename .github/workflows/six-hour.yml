@@ -2,8 +2,6 @@ name: 6-hour launches and satellites
 run-name: "6-hour launches and satellites: ${{ github.event_name }}"
 
 on:
-  schedule:
-    - cron: "19 */6 * * *"
   workflow_dispatch:
 
 jobs:
