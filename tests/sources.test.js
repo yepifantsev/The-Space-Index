@@ -95,3 +95,32 @@ for (const source of sources) {
     }
   })
 }
+
+test('neo-close-approaches: requests a dynamic 30-day window within 0.05 AU', async () => {
+  const source = sources.find((candidate) => candidate.name === 'neo-close-approaches')
+  const original = globalThis.fetch
+  let requestedUrl
+  globalThis.fetch = async (url) => {
+    requestedUrl = String(url)
+    return {
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      json: async () => ({ fields: ['des', 'cd', 'dist', 'v_rel', 'h'], data: [] }),
+      text: async () => '',
+    }
+  }
+
+  try {
+    await source.fetch({ now: new Date('2026-01-01T00:00:00Z') })
+  } finally {
+    globalThis.fetch = original
+  }
+
+  const url = new URL(requestedUrl)
+  assert.equal(url.hostname, 'ssd-api.jpl.nasa.gov')
+  assert.equal(url.pathname, '/cad.api')
+  assert.equal(url.searchParams.get('date-min'), '2026-01-01')
+  assert.equal(url.searchParams.get('date-max'), '2026-01-31')
+  assert.equal(url.searchParams.get('dist-max'), '0.05')
+})

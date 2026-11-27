@@ -812,7 +812,9 @@ export const renderers = {
               : object.missDistanceLd < 5
                 ? 'neo-approach neo-approach-close'
                 : 'neo-approach',
-            style: `--rock-rotation: ${(typeof object.name === 'string' && object.name.length ? (object.name.charCodeAt(object.name.length - 1) * 7) % 360 : 0)}deg`,
+            style: `--rock-rotation: ${(typeof object.name === 'string' && object.name.length >= 2
+              ? ((object.name.charCodeAt(object.name.length - 2) * 7) + (object.name.charCodeAt(object.name.length - 1) * 11)) % 360
+              : 0)}deg`,
           },
             h('span', { class: 'bullet-glyph asteroid-glyph', 'aria-hidden': 'true' }, '🪨'),
             h('strong', {},
@@ -840,7 +842,7 @@ export const renderers = {
         ),
       ),
       (data.approaches ?? []).length === 0 &&
-        h('p', { class: 'muted' }, 'No close approaches reported for this week.'),
+        h('p', { class: 'muted' }, 'No close approaches reported for the next 30 days.'),
     ),
 
   satellites: (data) =>
