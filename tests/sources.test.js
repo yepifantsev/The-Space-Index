@@ -125,7 +125,7 @@ test('neo-close-approaches: requests a dynamic 30-day window within 0.05 AU', as
   assert.equal(url.searchParams.get('dist-max'), '0.05')
 })
 
-test('moon-timeline: USNO outages fall back to calculated lunar phases', async () => {
+test('moon-timeline: source outages fall back to local lunar calculations', async () => {
   const source = sources.find((candidate) => candidate.name === 'moon-timeline')
   const original = globalThis.fetch
   globalThis.fetch = async (url) => {
@@ -146,7 +146,7 @@ test('moon-timeline: USNO outages fall back to calculated lunar phases', async (
         text: async () => '',
       }
     }
-    throw new Error('USNO unavailable')
+    throw new Error('External Moon endpoint unavailable')
   }
 
   try {

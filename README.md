@@ -14,7 +14,7 @@ cross-origin requests** — they only download static files.
 | Atmosphere transparency | [7Timer!](https://www.7timer.info/) transparency | `data/atmosphere-transparency.json` |
 | Dew point spread | [Open-Meteo](https://open-meteo.com/) temperature and dew point | `data/dew-point-spread.json` |
 | Wind | [Open-Meteo](https://open-meteo.com/) wind speed | `data/wind.json` |
-| Moon timeline | [Open-Meteo](https://open-meteo.com/) rise/set times · [USNO](https://aa.usno.navy.mil/data/AltAz) altitude and lunar sky calculations | `data/moon-timeline.json` |
+| Moon timeline | [Open-Meteo](https://open-meteo.com/) rise/set times · [Astronomy Engine](https://github.com/cosinekitty/astronomy) altitude, phase, illumination, and lunar sky calculations | `data/moon-timeline.json` |
 | Visible planets | [NASA/JPL Horizons](https://ssd.jpl.nasa.gov/horizons/) location-based planet ephemerides | `data/visible-planets.json` |
 | Meteor showers & comets | [MeteorShowerCal](https://meteorshowercal.com/api/docs/) ZHR · [COBS](https://www.cobs.si/) comet magnitudes | `data/celestial-events.json` |
 | NEO close approaches | [NASA/JPL CNEOS](https://cneos.jpl.nasa.gov/ca/) close-approach data | `data/neo-close-approaches.json` |

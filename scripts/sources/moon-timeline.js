@@ -45,19 +45,17 @@ export function calculateMoonAltAz(lat, lon, now = new Date()) {
 }
 
 export function calculatePrimaryLunarPhases(now = new Date()) {
-  const phases = []
   const phaseNames = ['New Moon', 'First Quarter', 'Full Moon', 'Last Quarter']
-  const monthIndex = Math.floor((now.getTime() - KNOWN_NEW_MOON_MS) / (SYNODIC_MONTH_DAYS * 86400000))
+  const phases = []
+  let searchFrom = new Date(now.getTime() - 40 * 86400000)
 
-  for (let index = monthIndex - 2; index <= monthIndex + 3; index += 1) {
-    for (let phaseIndex = 0; phaseIndex < phaseNames.length; phaseIndex += 1) {
-      const ageDays = index * SYNODIC_MONTH_DAYS + phaseIndex * SYNODIC_MONTH_DAYS / 4
-      const time = new Date(KNOWN_NEW_MOON_MS + ageDays * 86400000).toISOString()
-      phases.push({ name: phaseNames[phaseIndex], time })
-    }
+  for (let index = 0; index < 8; index += 1) {
+    const quarter = Astronomy.SearchMoonQuarter(searchFrom, 1)
+    const time = quarter.time.date
+    phases.push({ name: phaseNames[quarter.quarter], time: time.toISOString() })
+    searchFrom = new Date(time.getTime() + 1000)
   }
 
-  phases.sort((first, second) => Date.parse(first.time) - Date.parse(second.time))
   return {
     previous: phases.filter((phase) => Date.parse(phase.time) < now.getTime()).at(-1) ?? null,
     next: phases.find((phase) => Date.parse(phase.time) >= now.getTime()) ?? null,
@@ -105,55 +103,12 @@ export function calculateGeneralLunarSkyGlow(illumination, moonAltDeg, options =
   }
 }
 
-function easternDateParts(now) {
-  const parts = new Intl.DateTimeFormat('en-US', {
-    timeZone: 'America/New_York',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).formatToParts(now)
-  const get = (type) => parts.find((part) => part.type === type)?.value
-  return { year: get('year'), month: get('month'), day: get('day') }
-}
-
-async function fetchUsnoPrimaryPhases(now) {
-  const { year } = easternDateParts(now)
-  const currentYear = await fetchJson(
-    `https://aa.usno.navy.mil/api/moon/phases/year?year=${year}&ID=TheSpaceIndex`,
-  )
-  const nextYear = await fetchJson(
-    `https://aa.usno.navy.mil/api/moon/phases/year?year=${Number(year) + 1}&ID=TheSpaceIndex`,
-  )
-  const data = [
-    ...(currentYear.phasedata ?? []),
-    ...(nextYear.phasedata ?? []),
-  ]
-
-  const phases = data.map((phase) => ({
-    name: phase.phase,
-    time: new Date(
-      Date.UTC(
-        Number(phase.year),
-        Number(phase.month) - 1,
-        Number(phase.day),
-        Number(phase.time.slice(0, 2)),
-        Number(phase.time.slice(3, 5)),
-      ),
-    ).toISOString(),
-  })).sort((first, second) => Date.parse(first.time) - Date.parse(second.time))
-
-  return {
-    previous: phases.filter((phase) => Date.parse(phase.time) < now.getTime()).at(-1) ?? null,
-    next: phases.find((phase) => Date.parse(phase.time) >= now.getTime()) ?? null,
-  }
-}
-
 export default {
   name: 'moon-timeline',
-  title: 'Moon',
+  title: 'Moon 123',
   attribution: [
-    { label: 'USNO Moon Phases', url: 'https://aa.usno.navy.mil/data/MoonPhases' },
     { label: 'Astronomy Engine', url: 'https://github.com/cosinekitty/astronomy' },
+    { label: 'Open-Meteo', url: 'https://open-meteo.com/' },
   ],
   async fetch({ now = new Date() } = {}) {
     const lat = Number(process.env.SITE_LAT || DEFAULT_LOCATION.lat)
@@ -166,14 +121,9 @@ export default {
       `?latitude=${lat}&longitude=${lon}` +
       '&daily=sunrise,sunset,moonrise,moonset&timezone=UTC&forecast_days=7'
     const localAltAz = calculateMoonAltAz(lat, lon, now)
-    const [rawResult, primaryPhasesResult] = await Promise.allSettled([
-      fetchJson(url),
-      fetchUsnoPrimaryPhases(now),
-    ])
+    const primaryPhases = calculatePrimaryLunarPhases(now)
+    const [rawResult] = await Promise.allSettled([fetchJson(url)])
     const raw = rawResult.status === 'fulfilled' ? rawResult.value : {}
-    const primaryPhases = primaryPhasesResult.status === 'fulfilled'
-      ? primaryPhasesResult.value
-      : calculatePrimaryLunarPhases(now)
     const daily = raw.daily ?? {}
     const findNext = (values) =>
       (values ?? []).map(toUtcIso).find((time) => time && Date.parse(time) >= now.getTime()) ?? null
