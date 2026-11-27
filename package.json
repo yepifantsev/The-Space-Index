@@ -1,6 +1,6 @@
 {
   "name": "the-space-index",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "private": true,
   "type": "module",
   "engines": {
@@ -19,6 +19,7 @@
     "yaml": "^2.9.1"
   },
   "dependencies": {
+    "astronomy-engine": "^2.1.19",
     "satellite.js": "^7.2.0"
   }
 }

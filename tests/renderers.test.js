@@ -124,3 +124,19 @@ test('standalone metrics without min keep their original zero baseline', () => {
   const windBar = windNode.querySelector('rect.night-cell')
   assert.equal(windBar.getAttribute('y'), '124')
 })
+
+test('neo-close-approaches: empty state covers the next 30 days', () => {
+  const node = renderers['neo-close-approaches']({ approaches: [] })
+  assert.equal(node.textContent.includes('No close approaches reported for the next 30 days.'), true)
+})
+
+test('neo-close-approaches: asteroid glyph rotation uses the last two name characters', () => {
+  const node = renderers['neo-close-approaches']({
+    approaches: [
+      { name: '2026 VV11', date: '2026-Nov-25 21:20', missDistanceLd: 16, relativeVelocityKph: 30000, estimatedDiameterKm: 0.04 },
+      { name: '2026 VQ19', date: '2026-Nov-26 10:15', missDistanceLd: 4, relativeVelocityKph: 24000, estimatedDiameterKm: 0.03 },
+    ],
+  })
+  const approaches = [...node.querySelectorAll('.neo-approach')]
+  assert.notEqual(approaches[0].style.getPropertyValue('--rock-rotation'), approaches[1].style.getPropertyValue('--rock-rotation'))
+})

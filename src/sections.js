@@ -1,4 +1,5 @@
 import { h, formatTime } from './h.js'
+import { altitudeStatus } from './moon.js'
 
 const SVG_NS = 'http://www.w3.org/2000/svg'
 const KP_INTERVAL_MS = 3 * 60 * 60 * 1000
@@ -587,6 +588,22 @@ function renderStandaloneMetric(hours = [], metric) {
   return h('div', { class: 'night-chart-wrap' }, controls, chartHost)
 }
 
+function azimuthToCompass(azimuth) {
+  const directions = [
+    "N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
+    "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"
+  ];
+  // Normalize negative angles just in case, add 11.25° offset, and divide by 22.5°
+  const index = Math.floor((((azimuth % 360) + 360) % 360 + 11.25) / 22.5) % 16;
+  return directions[index];
+}
+
+
+/*********************** */
+/* ACTUAL SECTIONS BEGIN */
+/*********************** */
+
+
 // One renderer per data source (keyed by source name). Each receives the `data` field of the JSON file.
 export const renderers = {
   'space-weather': (data) => {
@@ -707,17 +724,27 @@ export const renderers = {
         { class: 'moon-summary mt-1' },
         h('span', { class: 'moon-glyph', role: 'img', 'aria-label': moon.name }, moon.glyph ?? '◐'),
         h('div', {},
-          h('strong', {}, moon.name ?? 'Moon phase'),
-          h('div', { class: 'muted' }, `${moon.illumination ?? '—'}% illuminated`),
+          h('strong', { class: 'moon-name' }, moon.name ?? 'Moon phase'),
+          h('div', { class: 'muted moon-illumination' }, `${moon.illumination ?? '—'}% illuminated`),
         ),
       ),
-      h('div', { class: 'meta mt-1' }, `Moonrise `, h('strong', {}, `${formatTime(data.moonrise)}`)),
-      h('div', { class: 'meta' }, `Moonset `, h('strong', {}, `${formatTime(data.moonset)}`)),
-      h('div', { class: 'meta mt-1' }, `Last phase `, h('strong', {}, `${moon.previousPhase?.name ?? '—'} · ${moon.previousPhase?.time ? formatEasternNavigation(moon.previousPhase.time) : '—'}`)),
-      h('div', { class: 'meta' }, `Next phase `, h('strong', {}, `${moon.nextPhase?.name ?? '—'} · ${moon.nextPhase?.time ? formatEasternNavigation(moon.nextPhase.time) : '—'}`)),
-      h('div', { class: 'meta mt-1' }, `Altitude `, h('strong', {}, `${Number.isFinite(moon.altitude) ? `${moon.altitude.toFixed(1)}°` : '—'}`)),
-      h('div', { class: 'meta' }, `Apparent magnitude `, h('strong', {}, `${Number.isFinite(moon.apparentMag) ? moon.apparentMag.toFixed(2) : '—'}`)),
-      h('div', { class: 'meta' }, `Background sky glow `, h('strong', {}, `${Number.isFinite(moon.zenithSkySqm) ? `${moon.zenithSkySqm.toFixed(2)} mag/arcsec²` : '—'}`)),
+      h(
+        'div',
+        { class: 'moon-info mt-1' },
+        `Altitude: `,
+        h(
+          'strong',
+          { class: `moon-altitude${moon.aboveHorizon === false ? ' muted' : ''}` },
+          `${Number.isFinite(moon.altitude) ? `${moon.altitude.toFixed(1)}° (${altitudeStatus(moon.altitude)})` : '—'}`,
+        ),
+      ),
+      h('div', { class: `moon-info ${moon.aboveHorizon === false ? 'muted' : ''}` }, `Azimuth: `, h('strong', { class: 'moon-azimuth' }, `${Number.isFinite(moon.azimuth) ? `${moon.azimuth.toFixed(1)}° (${azimuthToCompass(moon.azimuth)})` : '—'}`)),
+      h('div', { class: `moon-info mt-1 ${moon.aboveHorizon === false ? 'muted' : ''}` }, `Magnitude: `, h('strong', { class: 'moon-apparent-magnitude' }, `${Number.isFinite(moon.apparentMag) ? moon.apparentMag.toFixed(2) : '—'}`)),
+      h('div', { class: `moon-info ${moon.aboveHorizon === false ? 'muted' : ''}` }, `Sky glow: `, h('strong', { class: 'moon-sky-glow' }, `${Number.isFinite(moon.zenithSkySqm) ? `${moon.zenithSkySqm.toFixed(2)} mag/arcsec²` : '—'}`)),
+      h('div', { class: 'moon-info mt-1' }, `Moonrise: `, h('strong', {}, `${formatTime(data.moonrise)}`)),
+      h('div', { class: 'moon-info' }, `Moonset: `, h('strong', {}, `${formatTime(data.moonset)}`)),
+      h('div', { class: 'moon-info mt-1' }, `Last phase: `, h('strong', {}, `${moon.previousPhase?.name ?? '—'} · ${moon.previousPhase?.time ? formatEasternNavigation(moon.previousPhase.time) : '—'}`)),
+      h('div', { class: 'moon-info' }, `Next phase: `, h('strong', {}, `${moon.nextPhase?.name ?? '—'} · ${moon.nextPhase?.time ? formatEasternNavigation(moon.nextPhase.time) : '—'}`)),
     )
   },
 
@@ -812,7 +839,9 @@ export const renderers = {
               : object.missDistanceLd < 5
                 ? 'neo-approach neo-approach-close'
                 : 'neo-approach',
-            style: `--rock-rotation: ${(typeof object.name === 'string' && object.name.length ? (object.name.charCodeAt(object.name.length - 1) * 7) % 360 : 0)}deg`,
+            style: `--rock-rotation: ${(typeof object.name === 'string' && object.name.length >= 2
+              ? ((object.name.charCodeAt(object.name.length - 2) * 7) + (object.name.charCodeAt(object.name.length - 1) * 11)) % 360
+              : 0)}deg`,
           },
             h('span', { class: 'bullet-glyph asteroid-glyph', 'aria-hidden': 'true' }, '🪨'),
             h('strong', {},
@@ -840,7 +869,7 @@ export const renderers = {
         ),
       ),
       (data.approaches ?? []).length === 0 &&
-        h('p', { class: 'muted' }, 'No close approaches reported for this week.'),
+        h('p', { class: 'muted' }, 'No close approaches reported for the next 30 days.'),
     ),
 
   satellites: (data) =>

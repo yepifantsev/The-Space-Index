@@ -29,11 +29,11 @@ export default {
   attribution: { label: 'NASA/JPL CNEOS', url: 'https://cneos.jpl.nasa.gov/ca/' },
   async fetch({ now = new Date() } = {}) {
     const dateStart = now.toISOString().slice(0, 10)
-    const dateEnd = new Date(now.getTime() + 7 * 86400000).toISOString().slice(0, 10)
+    const dateEnd = new Date(now.getTime() + 30 * 86400000).toISOString().slice(0, 10)
     const url =
       'https://ssd-api.jpl.nasa.gov/cad.api' +
       `?date-min=${dateStart}&date-max=${dateEnd}` +
-      '&dist-max=0.05&limit=20'
+      '&dist-max=0.05&limit=100'
     const raw = await fetchJson(url)
     const fields = raw.fields ?? []
     const index = Object.fromEntries(fields.map((field, i) => [field, i]))

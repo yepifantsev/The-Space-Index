@@ -255,6 +255,11 @@ a {
   line-height: 1;
 }
 
+.moon-info {
+  font-size: 0.8rem;
+  margin-bottom: 0;
+}
+
 #launches {
   box-sizing: border-box;
 }

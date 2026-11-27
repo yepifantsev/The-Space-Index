@@ -95,3 +95,73 @@ for (const source of sources) {
     }
   })
 }
+
+test('neo-close-approaches: requests a dynamic 30-day window within 0.05 AU', async () => {
+  const source = sources.find((candidate) => candidate.name === 'neo-close-approaches')
+  const original = globalThis.fetch
+  let requestedUrl
+  globalThis.fetch = async (url) => {
+    requestedUrl = String(url)
+    return {
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      json: async () => ({ fields: ['des', 'cd', 'dist', 'v_rel', 'h'], data: [] }),
+      text: async () => '',
+    }
+  }
+
+  try {
+    await source.fetch({ now: new Date('2026-01-01T00:00:00Z') })
+  } finally {
+    globalThis.fetch = original
+  }
+
+  const url = new URL(requestedUrl)
+  assert.equal(url.hostname, 'ssd-api.jpl.nasa.gov')
+  assert.equal(url.pathname, '/cad.api')
+  assert.equal(url.searchParams.get('date-min'), '2026-01-01')
+  assert.equal(url.searchParams.get('date-max'), '2026-01-31')
+  assert.equal(url.searchParams.get('dist-max'), '0.05')
+})
+
+test('moon-timeline: USNO outages fall back to calculated lunar phases', async () => {
+  const source = sources.find((candidate) => candidate.name === 'moon-timeline')
+  const original = globalThis.fetch
+  globalThis.fetch = async (url) => {
+    const parsedUrl = new URL(String(url))
+    if (parsedUrl.hostname === 'api.open-meteo.com') {
+      return {
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        json: async () => ({
+          daily: {
+            sunrise: ['2026-01-01T12:00'],
+            sunset: ['2026-01-01T22:00'],
+            moonrise: ['2026-01-01T14:00'],
+            moonset: ['2026-01-02T02:00'],
+          },
+        }),
+        text: async () => '',
+      }
+    }
+    throw new Error('USNO unavailable')
+  }
+
+  try {
+    const payload = await source.fetch({ now: new Date('2026-01-01T00:00:00Z') })
+    assert.ok(payload.moon.name)
+    assert.equal(typeof payload.moon.illumination, 'number')
+    assert.ok(payload.moon.previousPhase)
+    assert.ok(payload.moon.nextPhase)
+    assert.equal(typeof payload.moon.altitude, 'number')
+    assert.equal(typeof payload.moon.aboveHorizon, 'boolean')
+    assert.equal(payload.moon.aboveHorizon, payload.moon.altitude >= 0)
+    assert.equal(typeof payload.moon.azimuth, 'number')
+    assert.ok(payload.moon.altitude >= -90 && payload.moon.altitude <= 90)
+    assert.ok(payload.moon.azimuth >= 0 && payload.moon.azimuth < 360)
+  } finally {
+    globalThis.fetch = original
+  }
+})
