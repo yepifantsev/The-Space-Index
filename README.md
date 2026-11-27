@@ -24,11 +24,11 @@ cross-origin requests** — they only download static files.
 ## How it works
 
 ```
-scripts/sources/*.js  --(npm run fetch)-->  data/*.json  --(npm run build)-->  dist/  -->  GitHub Pages
+scripts/fetchers/*.fetcher.js  --(npm run fetch)-->  data/*.json  --(npm run build)-->  dist/  -->  GitHub Pages
 ```
 
-- `scripts/sources/` – one Node module per source exporting `{ name, title, attribution, fetchRaw, formatRaw, fetch }`.
-  Register new sources in `scripts/sources/index.js`.
+- `scripts/fetchers/` – one Node fetcher module per source exporting `{ name, title, attribution, fetchRaw, formatRaw, fetch }`.
+  Register new fetchers in `scripts/fetchers/index.js`.
 - `src/formatters/` – browser-safe metadata, normalization, formatting, and calculations shared with Node.
  A shared module can supply `title`, `attribution`, and `formatRaw`.
 - `scripts/fetch-data.js` – runs every source and writes `data/raw/<name>.json` plus `data/<name>.json`.

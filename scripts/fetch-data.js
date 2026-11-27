@@ -8,7 +8,7 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import defaultSources from './sources/index.js'
+import defaultSources from './fetchers/index.js'
 
 export const DATA_DIR = fileURLToPath(new URL('../data/', import.meta.url))
 

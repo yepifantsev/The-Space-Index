@@ -4,7 +4,7 @@ import { mkdtemp, readFile, readdir, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { runSources } from '../scripts/fetch-data.js'
-import sources from '../scripts/sources/index.js'
+import sources from '../scripts/fetchers/index.js'
 
 const fixedNow = () => new Date('2026-01-01T00:00:00Z')
 
@@ -87,6 +87,15 @@ test('writes a placeholder when a source fails with no previous data', async () 
   assert.equal(json.data, null)
   assert.equal(json.updatedAt, null)
   assert.equal(json.error, 'boom')
+})
+
+test('fetcher modules use the .fetcher naming convention', async () => {
+  const fetcherDir = new URL('../scripts/fetchers/', import.meta.url)
+  const files = (await readdir(fetcherDir)).filter((file) => file.endsWith('.js'))
+  for (const file of files) {
+    if (file === 'index.js') continue
+    assert.match(file, /\.fetcher\.js$/, `${file} must use the .fetcher.js suffix`)
+  }
 })
 
 test('browser formatter modules contain no external fetch calls', async () => {

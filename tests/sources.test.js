@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import sources from '../scripts/sources/index.js'
+import sources from '../scripts/fetchers/index.js'
 
 function mockResponse(mode) {
   return async (url) => {
