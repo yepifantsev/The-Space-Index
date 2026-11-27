@@ -1,23 +1,18 @@
 import { fetchJson } from '../lib/http.js'
+import { title, attribution, formatRaw } from '../../src/sources/news.js'
 
 // Spaceflight News API v4.
 const ENDPOINT = 'https://api.spaceflightnewsapi.net/v4/articles/?limit=10'
 
 export default {
   name: 'news',
-  title: 'Space News',
-  attribution: { label: 'Spaceflight News', url: 'https://spaceflightnewsapi.net/' },
+  title,
+  attribution,
+  async fetchRaw() {
+    return fetchJson(ENDPOINT)
+  },
+  formatRaw,
   async fetch() {
-    const raw = await fetchJson(ENDPOINT)
-    return {
-      articles: (raw.results ?? []).map((a) => ({
-        id: a.id,
-        title: a.title,
-        url: a.url,
-        site: a.news_site,
-        summary: a.summary,
-        publishedAt: a.published_at,
-      })),
-    }
+    return formatRaw(await this.fetchRaw())
   },
 }

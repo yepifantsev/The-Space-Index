@@ -7,6 +7,17 @@ import {
   formatMoonTimeline,
   updateLiveMoonCard,
 } from './sources/moon-timeline.js'
+import * as spaceWeatherSource from './sources/space-weather.js'
+import * as nightForecastSource from './sources/night-forecast.js'
+import * as atmosphereTransparencySource from './sources/atmosphere-transparency.js'
+import * as dewPointSpreadSource from './sources/dew-point-spread.js'
+import * as windSource from './sources/wind.js'
+import * as launchesSource from './sources/launches.js'
+import * as visiblePlanetsSource from './sources/visible-planets.js'
+import * as celestialEventsSource from './sources/celestial-events.js'
+import * as neoCloseApproachesSource from './sources/neo-close-approaches.js'
+import * as newsSource from './sources/news.js'
+import * as satellitesSource from './sources/satellites.js'
 
 // Data JSON files are produced by `npm run fetch` and bundled at build time,
 // so visitors never make requests to third-party APIs.
@@ -18,13 +29,36 @@ const sources = Object.values(modules).sort(
   (a, b) => rank(a.name) - rank(b.name) || String(a.name).localeCompare(String(b.name)),
 )
 
-const rawMoon = rawModules['../data/raw/moon-timeline.json']
-if (rawMoon) {
-  const moonSource = sources.find((source) => source.name === 'moon-timeline')
-  if (moonSource) {
-    moonSource.title = moonTitle
-    moonSource.attribution = moonAttribution
-    moonSource.data = formatMoonTimeline(rawMoon)
+const sharedSources = {
+  'moon-timeline': {
+    title: moonTitle,
+    attribution: moonAttribution,
+    formatRaw: formatMoonTimeline,
+  },
+  'space-weather': spaceWeatherSource,
+  'night-forecast': nightForecastSource,
+  'atmosphere-transparency': atmosphereTransparencySource,
+  'dew-point-spread': dewPointSpreadSource,
+  'wind': windSource,
+  launches: launchesSource,
+  'visible-planets': visiblePlanetsSource,
+  'celestial-events': celestialEventsSource,
+  'neo-close-approaches': neoCloseApproachesSource,
+  news: newsSource,
+  satellites: {
+    title: satellitesSource.title,
+    attribution: satellitesSource.attribution,
+  },
+}
+
+for (const [name, shared] of Object.entries(sharedSources)) {
+  const raw = rawModules[`../data/raw/${name}.json`]
+  const source = sources.find((candidate) => candidate.name === name)
+  if (!source) continue
+  if (shared.title) source.title = shared.title
+  if (shared.attribution) source.attribution = shared.attribution
+  if (raw && shared.formatRaw) {
+    source.data = shared.formatRaw(raw)
   }
 }
 

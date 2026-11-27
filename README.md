@@ -27,9 +27,11 @@ cross-origin requests** — they only download static files.
 scripts/sources/*.js  --(npm run fetch)-->  data/*.json  --(npm run build)-->  dist/  -->  GitHub Pages
 ```
 
-- `scripts/sources/` – one module per source exporting `{ name, title, attribution, fetch }`.
+- `scripts/sources/` – one Node module per source exporting `{ name, title, attribution, fetchRaw, formatRaw, fetch }`.
   Register new sources in `scripts/sources/index.js`.
-- `scripts/fetch-data.js` – runs every source and writes `data/<name>.json`.
+- `src/sources/` – browser-safe metadata, normalization, formatting, and calculations shared with Node.
+ A shared module can supply `title`, `attribution`, and `formatRaw`.
+- `scripts/fetch-data.js` – runs every source and writes `data/raw/<name>.json` plus `data/<name>.json`.
   If a source fails, its previous file is kept (or a placeholder is written), so a
   build never breaks because one API is down.
 - `src/` – the front end. `data/*.json` is imported at build time via

@@ -1,12 +1,12 @@
 import { fetchJson } from '../lib/http.js'
 import { DEFAULT_LOCATION } from '../lib/location.js'
-import { toUtcIso } from '../lib/time.js'
+import { title, attribution, formatRaw } from '../../src/sources/dew-point-spread.js'
 
 export default {
   name: 'dew-point-spread',
-  title: 'Dew Point Spread Forecast',
-  attribution: { label: 'Open-Meteo', url: 'https://open-meteo.com/' },
-  async fetch({ now = new Date() } = {}) {
+  title,
+  attribution,
+  async fetchRaw() {
     const lat = Number(process.env.SITE_LAT || DEFAULT_LOCATION.lat)
     const lon = Number(process.env.SITE_LON || DEFAULT_LOCATION.lon)
     const raw = await fetchJson(
@@ -14,17 +14,10 @@ export default {
       `?latitude=${lat}&longitude=${lon}` +
       '&hourly=temperature_2m,dew_point_2m&temperature_unit=celsius&timezone=UTC&past_hours=24&forecast_hours=72',
     )
-    const h = raw.hourly ?? {}
-    const forecast = (h.time ?? []).map((time, i) => {
-      const temperature = h.temperature_2m?.[i]
-      const dewPoint = h.dew_point_2m?.[i]
-      return {
-        time: toUtcIso(time),
-        spreadC: Number.isFinite(temperature) && Number.isFinite(dewPoint)
-          ? temperature - dewPoint
-          : null,
-      }
-    }).filter((row) => row.time && Date.parse(row.time) >= now.getTime() - 24 * 3600000)
-    return { location: { lat, lon }, forecast }
+    return { location: { lat, lon }, hourly: raw.hourly ?? {} }
+  },
+  formatRaw,
+  async fetch({ now = new Date() } = {}) {
+    return formatRaw(await this.fetchRaw(), now)
   },
 }

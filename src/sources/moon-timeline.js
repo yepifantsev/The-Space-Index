@@ -5,8 +5,8 @@ const KNOWN_NEW_MOON_MS = Date.parse('2000-01-06T18:14:00Z')
 
 export const title = 'Moon'
 export const attribution = [
-  { label: 'Astronomy Engine', url: 'https://github.com/cosinekitty/astronomy' },
-  { label: 'Open-Meteo', url: 'https://open-meteo.com/' },
+  { label: '[1]', url: 'https://github.com/cosinekitty/astronomy' },
+  { label: '[2]', url: 'https://open-meteo.com/' },
 ]
 
 export function azimuthToCompass(azimuth) {
