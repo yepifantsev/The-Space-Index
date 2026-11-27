@@ -1,6 +1,7 @@
 import './style.css'
 import { h } from './h.js'
 import { renderSection } from './sections.js'
+import { updateLiveMoonCard } from './moon.js'
 
 // Data JSON files are produced by `npm run fetch` and bundled at build time,
 // so visitors never make requests to third-party APIs.
@@ -16,6 +17,18 @@ if (sources.length === 0) {
   app.append(h('p', { class: 'muted' }, 'No data yet. Run `npm run fetch` to pull data, then reload.'))
 } else {
   app.append(...sources.map(renderSection))
+}
+
+const moonSource = sources.find((source) => source.name === 'moon-timeline')
+if (moonSource?.data?.location) {
+  const moonCard = document.querySelector('#moon-timeline')
+  const refreshLiveMoon = () => updateLiveMoonCard(
+    moonCard,
+    moonSource.data.location.lat,
+    moonSource.data.location.lon,
+  )
+  refreshLiveMoon()
+  setInterval(refreshLiveMoon, 60 * 1000)
 }
 
 document.querySelector('#build-time').textContent =

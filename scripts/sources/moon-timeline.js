@@ -1,6 +1,7 @@
-import { fetchJson, fetchText } from '../lib/http.js'
+import { fetchJson } from '../lib/http.js'
 import { DEFAULT_LOCATION } from '../lib/location.js'
 import { toUtcIso } from '../lib/time.js'
+import * as Astronomy from 'astronomy-engine'
 
 const SYNODIC_MONTH_DAYS = 29.53058867
 const KNOWN_NEW_MOON_MS = Date.parse('2000-01-06T18:14:00Z')
@@ -31,6 +32,36 @@ export function moonPhase(now = new Date()) {
     name = 'Waning Crescent'; glyph = '🌘'
   }
   return { name, glyph, illumination: Math.round(illumination), fraction }
+}
+
+export function calculateMoonAltAz(lat, lon, now = new Date()) {
+  const observer = new Astronomy.Observer(lat, lon, 0)
+  const equatorial = Astronomy.Equator(Astronomy.Body.Moon, now, observer, true, true)
+  const horizontal = Astronomy.Horizon(now, observer, equatorial.ra, equatorial.dec, 'normal')
+  return {
+    altitude: Number(horizontal.altitude.toFixed(1)),
+    azimuth: Number(horizontal.azimuth.toFixed(1)),
+  }
+}
+
+export function calculatePrimaryLunarPhases(now = new Date()) {
+  const phases = []
+  const phaseNames = ['New Moon', 'First Quarter', 'Full Moon', 'Last Quarter']
+  const monthIndex = Math.floor((now.getTime() - KNOWN_NEW_MOON_MS) / (SYNODIC_MONTH_DAYS * 86400000))
+
+  for (let index = monthIndex - 2; index <= monthIndex + 3; index += 1) {
+    for (let phaseIndex = 0; phaseIndex < phaseNames.length; phaseIndex += 1) {
+      const ageDays = index * SYNODIC_MONTH_DAYS + phaseIndex * SYNODIC_MONTH_DAYS / 4
+      const time = new Date(KNOWN_NEW_MOON_MS + ageDays * 86400000).toISOString()
+      phases.push({ name: phaseNames[phaseIndex], time })
+    }
+  }
+
+  phases.sort((first, second) => Date.parse(first.time) - Date.parse(second.time))
+  return {
+    previous: phases.filter((phase) => Date.parse(phase.time) < now.getTime()).at(-1) ?? null,
+    next: phases.find((phase) => Date.parse(phase.time) >= now.getTime()) ?? null,
+  }
 }
 
 export function calculateGeneralLunarSkyGlow(illumination, moonAltDeg, options = {}) {
@@ -85,42 +116,6 @@ function easternDateParts(now) {
   return { year: get('year'), month: get('month'), day: get('day') }
 }
 
-async function fetchUsnoMoonAltitude(lat, lon, now) {
-  const { year, month, day } = easternDateParts(now)
-  const date = `${year}-${month}-${day}`
-  const url =
-    'https://aa.usno.navy.mil/calculated/altaz' +
-    `?body=11&date=${date}&intv_mag=60` +
-    `&lat=${lat}&lon=${lon}&tz=5&tz_sign=-1&submit=Get+Data`
-  const html = await fetchText(url)
-  const rows = []
-  const rowPattern = /<tr>\s*<td>([^<]+)<\/td>\s*<td>([^<]+)<\/td>\s*<td>([^<]+)<\/td>\s*<td>([^<]+)<\/td>\s*<\/tr>/gi
-  let match
-  while ((match = rowPattern.exec(html)) !== null) {
-    const time = match[1].trim()
-    const altitude = Number(match[2].replace(/[^0-9.+-]/g, ''))
-    const azimuth = Number(match[3].replace(/[^0-9.+-]/g, ''))
-    const illumination = Number(match[4].trim())
-    if (/^\d{2}:\d{2}$/.test(time) && Number.isFinite(altitude)) {
-      rows.push({ time, altitude, azimuth, illumination: Number.isFinite(illumination) ? illumination : null })
-    }
-  }
-
-  const easternClock = new Intl.DateTimeFormat('en-US', {
-    timeZone: 'America/New_York',
-    hour: '2-digit',
-    minute: '2-digit',
-    hourCycle: 'h23',
-  }).format(now)
-  const currentMinutes = Number(easternClock.slice(0, 2)) * 60 + Number(easternClock.slice(3, 5))
-  const nearest = rows.reduce((best, row) => {
-    const [hour, minute] = row.time.split(':').map(Number)
-    const distance = Math.abs(hour * 60 + minute - currentMinutes)
-    return !best || distance < best.distance ? { ...row, distance } : best
-  }, null)
-  return nearest
-}
-
 async function fetchUsnoPrimaryPhases(now) {
   const { year } = easternDateParts(now)
   const currentYear = await fetchJson(
@@ -157,7 +152,8 @@ export default {
   name: 'moon-timeline',
   title: 'Moon',
   attribution: [
-    { label: 'USNO', url: 'https://aa.usno.navy.mil/data/AltAz' },
+    { label: 'USNO Moon Phases', url: 'https://aa.usno.navy.mil/data/MoonPhases' },
+    { label: 'Astronomy Engine', url: 'https://github.com/cosinekitty/astronomy' },
   ],
   async fetch({ now = new Date() } = {}) {
     const lat = Number(process.env.SITE_LAT || DEFAULT_LOCATION.lat)
@@ -169,19 +165,23 @@ export default {
       'https://api.open-meteo.com/v1/forecast' +
       `?latitude=${lat}&longitude=${lon}` +
       '&daily=sunrise,sunset,moonrise,moonset&timezone=UTC&forecast_days=7'
-    const [raw, usno, primaryPhases] = await Promise.all([
+    const localAltAz = calculateMoonAltAz(lat, lon, now)
+    const [rawResult, primaryPhasesResult] = await Promise.allSettled([
       fetchJson(url),
-      fetchUsnoMoonAltitude(lat, lon, now),
       fetchUsnoPrimaryPhases(now),
     ])
+    const raw = rawResult.status === 'fulfilled' ? rawResult.value : {}
+    const primaryPhases = primaryPhasesResult.status === 'fulfilled'
+      ? primaryPhasesResult.value
+      : calculatePrimaryLunarPhases(now)
     const daily = raw.daily ?? {}
     const findNext = (values) =>
       (values ?? []).map(toUtcIso).find((time) => time && Date.parse(time) >= now.getTime()) ?? null
 
     const phase = moonPhase(now)
     const lunar = calculateGeneralLunarSkyGlow(
-      usno?.illumination ?? phase.fraction,
-      usno?.altitude ?? -1,
+      phase.fraction,
+      localAltAz.altitude,
     )
 
     return {
@@ -192,11 +192,8 @@ export default {
       moonset: findNext(daily.moonset),
       moon: {
         ...phase,
-        illumination: usno?.illumination != null
-          ? Math.round(usno.illumination * 100)
-          : phase.illumination,
-        altitude: usno?.altitude ?? null,
-        azimuth: usno?.azimuth ?? null,
+        altitude: localAltAz.altitude,
+        azimuth: localAltAz.azimuth,
         apparentMag: lunar.apparentMag,
         zenithSkySqm: lunar.zenithSkySqm,
         phaseAngleDeg: lunar.phaseAngleDeg,
