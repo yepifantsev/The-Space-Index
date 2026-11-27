@@ -141,11 +141,11 @@ export const renderers = {
       ),
       h(
         'div',
-        { class: 'moon-info mt-1' },
+        { class: `moon-info mt-1 ${moon.aboveHorizon === false ? ' muted' : ''}` },
         `Altitude: `,
         h(
           'strong',
-          { class: `moon-altitude${moon.aboveHorizon === false ? ' muted' : ''}` },
+          { class: `moon-altitude` },
           `${Number.isFinite(moon.altitude) ? `${moon.altitude.toFixed(1)}° (${altitudeStatus(moon.altitude)})` : '—'}`,
         ),
       ),
