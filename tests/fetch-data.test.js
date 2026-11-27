@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { mkdtemp, readFile, writeFile } from 'node:fs/promises'
+import { mkdtemp, readFile, readdir, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { runSources } from '../scripts/fetch-data.js'
@@ -87,6 +87,16 @@ test('writes a placeholder when a source fails with no previous data', async () 
   assert.equal(json.data, null)
   assert.equal(json.updatedAt, null)
   assert.equal(json.error, 'boom')
+})
+
+test('browser formatter modules contain no external fetch calls', async () => {
+  const formatterDir = new URL('../src/formatters/', import.meta.url)
+  const files = (await readdir(formatterDir)).filter((file) => file.endsWith('.js'))
+
+  for (const file of files) {
+    const source = await readFile(new URL(file, formatterDir), 'utf8')
+    assert.doesNotMatch(source, /\bfetch(?:Json|Text)?\s*\(/, `${file} must not fetch external data`)
+  }
 })
 
 test('toUtcIso normalizes offset-less UTC timestamps', async () => {

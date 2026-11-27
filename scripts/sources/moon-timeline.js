@@ -4,7 +4,7 @@ import {
   attribution,
   title,
   formatMoonTimeline,
-} from '../../src/sources/moon-timeline.js'
+} from '../../src/formatters/moon-timeline.formatter.js'
 
 export { formatMoonTimeline }
 

@@ -29,7 +29,7 @@ scripts/sources/*.js  --(npm run fetch)-->  data/*.json  --(npm run build)-->  d
 
 - `scripts/sources/` – one Node module per source exporting `{ name, title, attribution, fetchRaw, formatRaw, fetch }`.
   Register new sources in `scripts/sources/index.js`.
-- `src/sources/` – browser-safe metadata, normalization, formatting, and calculations shared with Node.
+- `src/formatters/` – browser-safe metadata, normalization, formatting, and calculations shared with Node.
  A shared module can supply `title`, `attribution`, and `formatRaw`.
 - `scripts/fetch-data.js` – runs every source and writes `data/raw/<name>.json` plus `data/<name>.json`.
   If a source fails, its previous file is kept (or a placeholder is written), so a

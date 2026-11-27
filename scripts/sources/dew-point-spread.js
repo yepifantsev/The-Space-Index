@@ -1,6 +1,6 @@
 import { fetchJson } from '../lib/http.js'
 import { DEFAULT_LOCATION } from '../lib/location.js'
-import { title, attribution, formatRaw } from '../../src/sources/dew-point-spread.js'
+import { title, attribution, formatRaw } from '../../src/formatters/dew-point-spread.formatter.js'
 
 export default {
   name: 'dew-point-spread',

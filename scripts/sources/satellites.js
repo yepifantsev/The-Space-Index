@@ -1,7 +1,7 @@
 import { fetchJson, fetchText } from '../lib/http.js'
 import * as satellite from 'satellite.js'
 import { DEFAULT_LOCATION } from '../lib/location.js'
-import { title, attribution } from '../../src/sources/satellites.js'
+import { title, attribution } from '../../src/formatters/satellites.formatter.js'
 import { toUtcIso } from '../lib/time.js'
 
 // CelesTrak general perturbations (GP) elements for the visual-satellite group.

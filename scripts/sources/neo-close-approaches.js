@@ -1,5 +1,5 @@
 import { fetchJson } from '../lib/http.js'
-import { title, attribution, formatRaw } from '../../src/sources/neo-close-approaches.js'
+import { title, attribution, formatRaw } from '../../src/formatters/neo-close-approaches.formatter.js'
 
 export default {
   name: 'neo-close-approaches',

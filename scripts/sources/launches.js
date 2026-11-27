@@ -1,5 +1,5 @@
 import { fetchJson } from '../lib/http.js'
-import { title, attribution, formatRaw } from '../../src/sources/launches.js'
+import { title, attribution, formatRaw } from '../../src/formatters/launches.formatter.js'
 
 // The Space Devs Launch Library 2 (free tier is rate-limited to ~15 req/hour).
 const ENDPOINT = 'https://ll.thespacedevs.com/2.3.0/launches/upcoming/?limit=10'

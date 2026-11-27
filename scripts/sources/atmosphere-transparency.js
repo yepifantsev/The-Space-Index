@@ -1,6 +1,6 @@
 import { fetchJson } from '../lib/http.js'
 import { DEFAULT_LOCATION } from '../lib/location.js'
-import { title, attribution, formatRaw } from '../../src/sources/atmosphere-transparency.js'
+import { title, attribution, formatRaw } from '../../src/formatters/atmosphere-transparency.formatter.js'
 
 export default {
   name: 'atmosphere-transparency',

@@ -1,6 +1,6 @@
 import { fetchJson } from '../lib/http.js'
 import { DEFAULT_LOCATION } from '../lib/location.js'
-import { title, attribution, formatRaw } from '../../src/sources/wind.js'
+import { title, attribution, formatRaw } from '../../src/formatters/wind.formatter.js'
 
 export default {
   name: 'wind',

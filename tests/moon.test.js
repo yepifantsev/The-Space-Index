@@ -5,7 +5,7 @@ import {
   azimuthToCompass,
   calculateGeneralLunarSkyGlow,
   altitudeStatus,
-} from '../src/sources/moon-timeline.js'
+} from '../src/formatters/moon-timeline.formatter.js'
 
 test('calculateLiveMoon returns current phase and horizontal coordinates', () => {
   const moon = calculateLiveMoon(

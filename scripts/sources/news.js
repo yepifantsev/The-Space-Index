@@ -1,5 +1,5 @@
 import { fetchJson } from '../lib/http.js'
-import { title, attribution, formatRaw } from '../../src/sources/news.js'
+import { title, attribution, formatRaw } from '../../src/formatters/news.formatter.js'
 
 // Spaceflight News API v4.
 const ENDPOINT = 'https://api.spaceflightnewsapi.net/v4/articles/?limit=10'

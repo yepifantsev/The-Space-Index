@@ -1,6 +1,6 @@
 import { fetchJson } from '../lib/http.js'
 import { DEFAULT_LOCATION } from '../lib/location.js'
-import { title, attribution, formatRaw } from '../../src/sources/night-forecast.js'
+import { title, attribution, formatRaw } from '../../src/formatters/night-forecast.formatter.js'
 
 // Open-Meteo hourly cloud cover for the configured observing location.
 // Override with SITE_LAT / SITE_LON / SITE_LOCATION_NAME environment variables.

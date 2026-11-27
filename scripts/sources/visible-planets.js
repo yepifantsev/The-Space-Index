@@ -1,6 +1,6 @@
 import { fetchText } from '../lib/http.js'
 import { DEFAULT_LOCATION } from '../lib/location.js'
-import { title, attribution, formatRaw } from '../../src/sources/visible-planets.js'
+import { title, attribution, formatRaw } from '../../src/formatters/visible-planets.formatter.js'
 
 const PLANETS = [
   { name: 'Mercury', id: '199', icon: '☿' },

@@ -6,18 +6,18 @@ import {
   attribution as moonAttribution,
   formatMoonTimeline,
   updateLiveMoonCard,
-} from './sources/moon-timeline.js'
-import * as spaceWeatherSource from './sources/space-weather.js'
-import * as nightForecastSource from './sources/night-forecast.js'
-import * as atmosphereTransparencySource from './sources/atmosphere-transparency.js'
-import * as dewPointSpreadSource from './sources/dew-point-spread.js'
-import * as windSource from './sources/wind.js'
-import * as launchesSource from './sources/launches.js'
-import * as visiblePlanetsSource from './sources/visible-planets.js'
-import * as celestialEventsSource from './sources/celestial-events.js'
-import * as neoCloseApproachesSource from './sources/neo-close-approaches.js'
-import * as newsSource from './sources/news.js'
-import * as satellitesSource from './sources/satellites.js'
+} from './formatters/moon-timeline.formatter.js'
+import * as spaceWeatherSource from './formatters/space-weather.formatter.js'
+import * as nightForecastSource from './formatters/night-forecast.formatter.js'
+import * as atmosphereTransparencySource from './formatters/atmosphere-transparency.formatter.js'
+import * as dewPointSpreadSource from './formatters/dew-point-spread.formatter.js'
+import * as windSource from './formatters/wind.formatter.js'
+import * as launchesSource from './formatters/launches.formatter.js'
+import * as visiblePlanetsSource from './formatters/visible-planets.formatter.js'
+import * as celestialEventsSource from './formatters/celestial-events.formatter.js'
+import * as neoCloseApproachesSource from './formatters/neo-close-approaches.formatter.js'
+import * as newsSource from './formatters/news.formatter.js'
+import * as satellitesSource from './formatters/satellites.formatter.js'
 
 // Data JSON files are produced by `npm run fetch` and bundled at build time,
 // so visitors never make requests to third-party APIs.

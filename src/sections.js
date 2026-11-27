@@ -2,7 +2,7 @@ import { h, formatTime } from './h.js'
 import {
   altitudeStatus,
   azimuthToCompass,
-} from './sources/moon-timeline.js'
+} from './formatters/moon-timeline.formatter.js'
 import {
   formatEasternNavigation,
   formatLocationNavigation,
