@@ -22,13 +22,22 @@ async function readExisting(file) {
 
 export async function runSources(sources = defaultSources, { outDir = DATA_DIR, now = () => new Date() } = {}) {
   await mkdir(outDir, { recursive: true })
+  await mkdir(path.join(outDir, 'raw'), { recursive: true })
 
   const results = await Promise.all(
     sources.map(async (source) => {
       const file = path.join(outDir, `${source.name}.json`)
       const meta = { name: source.name, title: source.title, attribution: source.attribution ?? null }
       try {
-        const data = await source.fetch()
+        let data
+        if (typeof source.fetchRaw === 'function' && typeof source.formatRaw === 'function') {
+          const raw = await source.fetchRaw()
+          const rawFile = path.join(outDir, 'raw', `${source.name}.json`)
+          await writeFile(rawFile, JSON.stringify(raw, null, 2) + '\n')
+          data = source.formatRaw(raw, { now: now() })
+        } else {
+          data = await source.fetch()
+        }
         const payload = { ...meta, updatedAt: now().toISOString(), error: null, data }
         await writeFile(file, JSON.stringify(payload, null, 2) + '\n')
         return { name: source.name, ok: true }

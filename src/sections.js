@@ -1,5 +1,8 @@
 import { h, formatTime } from './h.js'
-import { altitudeStatus } from './moon.js'
+import {
+  altitudeStatus,
+  azimuthToCompass,
+} from './sources/moon-timeline.js'
 import {
   formatEasternNavigation,
   formatLocationNavigation,
@@ -10,7 +13,6 @@ import {
   renderKpChart,
   renderNightSkyChart,
   renderStandaloneMetric,
-  azimuthToCompass,
 } from './section-helpers.js'
 
 // One renderer per data source (keyed by source name). Each receives the `data` field of the JSON file.

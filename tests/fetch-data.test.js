@@ -39,6 +39,30 @@ test('writes fetched data to <name>.json', async () => {
   assert.deepEqual(json.data, { value: 42 })
 })
 
+test('writes raw data and formatted data for a split source', async () => {
+  const outDir = await tempDir()
+  const [result] = await runSources(
+    [{
+      name: 'demo',
+      title: 'Demo',
+      fetchRaw: async () => ({ value: 21 }),
+      formatRaw: (raw, { now }) => ({ value: raw.value * 2, fetchedAt: now.toISOString() }),
+      fetch: async () => ({ value: 42 }),
+    }],
+    { outDir, now: fixedNow },
+  )
+  assert.deepEqual(result, { name: 'demo', ok: true })
+  assert.deepEqual(await readJson(path.join(outDir, 'demo.json')), {
+    name: 'demo',
+    title: 'Demo',
+    attribution: null,
+    updatedAt: '2026-01-01T00:00:00.000Z',
+    error: null,
+    data: { value: 42, fetchedAt: '2026-01-01T00:00:00.000Z' },
+  })
+  assert.deepEqual(await readJson(path.join(outDir, 'raw', 'demo.json')), { value: 21 })
+})
+
 test('keeps previous data when a source fails', async () => {
   const outDir = await tempDir()
   const previous = { name: 'demo', title: 'Demo', updatedAt: 'x', error: null, data: { value: 1 } }

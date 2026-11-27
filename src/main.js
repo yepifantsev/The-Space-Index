@@ -1,16 +1,32 @@
 import './style.css'
 import { h } from './h.js'
 import { renderSection } from './sections.js'
-import { updateLiveMoonCard } from './moon.js'
+import {
+  title as moonTitle,
+  attribution as moonAttribution,
+  formatMoonTimeline,
+  updateLiveMoonCard,
+} from './sources/moon-timeline.js'
 
 // Data JSON files are produced by `npm run fetch` and bundled at build time,
 // so visitors never make requests to third-party APIs.
 const modules = import.meta.glob('../data/*.json', { eager: true, import: 'default' })
+const rawModules = import.meta.glob('../data/raw/*.json', { eager: true, import: 'default' })
 const order = ['night-forecast', 'wind', 'dew-point-spread', 'space-weather', 'atmosphere-transparency', 'moon-timeline', 'visible-planets', 'celestial-events', 'neo-close-approaches', 'launches', 'satellites', 'news']
 const rank = (name) => (order.includes(name) ? order.indexOf(name) : order.length)
 const sources = Object.values(modules).sort(
   (a, b) => rank(a.name) - rank(b.name) || String(a.name).localeCompare(String(b.name)),
 )
+
+const rawMoon = rawModules['../data/raw/moon-timeline.json']
+if (rawMoon) {
+  const moonSource = sources.find((source) => source.name === 'moon-timeline')
+  if (moonSource) {
+    moonSource.title = moonTitle
+    moonSource.attribution = moonAttribution
+    moonSource.data = formatMoonTimeline(rawMoon)
+  }
+}
 
 const app = document.querySelector('#app')
 if (sources.length === 0) {

@@ -1,5 +1,4 @@
 import { h } from './h.js'
-import { altitudeStatus } from './moon.js'
 
 const SVG_NS = 'http://www.w3.org/2000/svg'
 const KP_INTERVAL_MS = 3 * 60 * 60 * 1000
@@ -588,17 +587,3 @@ export function renderStandaloneMetric(hours = [], metric) {
   return h('div', { class: 'night-chart-wrap' }, controls, chartHost)
 }
 
-export function azimuthToCompass(azimuth) {
-  const directions = [
-    "N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
-    "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"
-  ];
-  // Normalize negative angles just in case, add 11.25° offset, and divide by 22.5°
-  const index = Math.floor((((azimuth % 360) + 360) % 360 + 11.25) / 22.5) % 16;
-  return directions[index];
-}
-
-
-
-
-export { altitudeStatus }
