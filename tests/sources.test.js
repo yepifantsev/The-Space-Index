@@ -156,6 +156,8 @@ test('moon-timeline: USNO outages fall back to calculated lunar phases', async (
     assert.ok(payload.moon.previousPhase)
     assert.ok(payload.moon.nextPhase)
     assert.equal(typeof payload.moon.altitude, 'number')
+    assert.equal(typeof payload.moon.aboveHorizon, 'boolean')
+    assert.equal(payload.moon.aboveHorizon, payload.moon.altitude >= 0)
     assert.equal(typeof payload.moon.azimuth, 'number')
     assert.ok(payload.moon.altitude >= -90 && payload.moon.altitude <= 90)
     assert.ok(payload.moon.azimuth >= 0 && payload.moon.azimuth < 360)

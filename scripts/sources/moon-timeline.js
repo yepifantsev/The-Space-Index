@@ -193,6 +193,7 @@ export default {
       moon: {
         ...phase,
         altitude: localAltAz.altitude,
+        aboveHorizon: localAltAz.altitude >= 0,
         azimuth: localAltAz.azimuth,
         apparentMag: lunar.apparentMag,
         zenithSkySqm: lunar.zenithSkySqm,

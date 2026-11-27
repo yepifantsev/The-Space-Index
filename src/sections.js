@@ -1,4 +1,5 @@
 import { h, formatTime } from './h.js'
+import { altitudeStatus } from './moon.js'
 
 const SVG_NS = 'http://www.w3.org/2000/svg'
 const KP_INTERVAL_MS = 3 * 60 * 60 * 1000
@@ -727,14 +728,23 @@ export const renderers = {
           h('div', { class: 'muted moon-illumination' }, `${moon.illumination ?? '—'}% illuminated`),
         ),
       ),
-      h('div', { class: 'meta mt-1' }, `Altitude `, h('strong', { class: 'moon-altitude' }, `${Number.isFinite(moon.altitude) ? `${moon.altitude.toFixed(1)}°` : '—'}`)),
-      h('div', { class: 'meta' }, `Azimuth `, h('strong', { class: 'moon-azimuth' }, `${Number.isFinite(moon.azimuth) ? `${moon.azimuth.toFixed(1)}° (${azimuthToCompass(moon.azimuth)})` : '—'}`)),
-      h('div', { class: 'meta mt-1' }, `Moonrise `, h('strong', {}, `${formatTime(data.moonrise)}`)),
-      h('div', { class: 'meta' }, `Moonset `, h('strong', {}, `${formatTime(data.moonset)}`)),
-      h('div', { class: 'meta mt-1' }, `Last phase `, h('strong', {}, `${moon.previousPhase?.name ?? '—'} · ${moon.previousPhase?.time ? formatEasternNavigation(moon.previousPhase.time) : '—'}`)),
-      h('div', { class: 'meta' }, `Next phase `, h('strong', {}, `${moon.nextPhase?.name ?? '—'} · ${moon.nextPhase?.time ? formatEasternNavigation(moon.nextPhase.time) : '—'}`)),
-      h('div', { class: 'meta mt-1' }, `Apparent magnitude `, h('strong', {}, `${Number.isFinite(moon.apparentMag) ? moon.apparentMag.toFixed(2) : '—'}`)),
-      h('div', { class: 'meta' }, `Background sky glow `, h('strong', {}, `${Number.isFinite(moon.zenithSkySqm) ? `${moon.zenithSkySqm.toFixed(2)} mag/arcsec²` : '—'}`)),
+      h(
+        'div',
+        { class: 'moon-info mt-1' },
+        `Altitude: `,
+        h(
+          'strong',
+          { class: `moon-altitude${moon.aboveHorizon === false ? ' muted' : ''}` },
+          `${Number.isFinite(moon.altitude) ? `${moon.altitude.toFixed(1)}° (${altitudeStatus(moon.altitude)})` : '—'}`,
+        ),
+      ),
+      h('div', { class: `moon-info ${moon.aboveHorizon === false ? 'muted' : ''}` }, `Azimuth: `, h('strong', { class: 'moon-azimuth' }, `${Number.isFinite(moon.azimuth) ? `${moon.azimuth.toFixed(1)}° (${azimuthToCompass(moon.azimuth)})` : '—'}`)),
+      h('div', { class: `moon-info mt-1 ${moon.aboveHorizon === false ? 'muted' : ''}` }, `Magnitude: `, h('strong', { class: 'moon-apparent-magnitude' }, `${Number.isFinite(moon.apparentMag) ? moon.apparentMag.toFixed(2) : '—'}`)),
+      h('div', { class: `moon-info ${moon.aboveHorizon === false ? 'muted' : ''}` }, `Sky glow: `, h('strong', { class: 'moon-sky-glow' }, `${Number.isFinite(moon.zenithSkySqm) ? `${moon.zenithSkySqm.toFixed(2)} mag/arcsec²` : '—'}`)),
+      h('div', { class: 'moon-info mt-1' }, `Moonrise: `, h('strong', {}, `${formatTime(data.moonrise)}`)),
+      h('div', { class: 'moon-info' }, `Moonset: `, h('strong', {}, `${formatTime(data.moonset)}`)),
+      h('div', { class: 'moon-info mt-1' }, `Last phase: `, h('strong', {}, `${moon.previousPhase?.name ?? '—'} · ${moon.previousPhase?.time ? formatEasternNavigation(moon.previousPhase.time) : '—'}`)),
+      h('div', { class: 'moon-info' }, `Next phase: `, h('strong', {}, `${moon.nextPhase?.name ?? '—'} · ${moon.nextPhase?.time ? formatEasternNavigation(moon.nextPhase.time) : '—'}`)),
     )
   },
 
