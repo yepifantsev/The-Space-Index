@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import PanelCard from './PanelCard.vue'
-import { formatLocationNavigation, formatLaunchStatus, launchStatusStyle } from '../../section-helpers.js'
+import { formatLocationNavigation, formatLaunchStatus, launchStatusStyle } from './panel-helpers.js'
 
 const props = defineProps({
   source: {

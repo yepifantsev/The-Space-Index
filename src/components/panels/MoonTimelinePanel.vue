@@ -2,7 +2,7 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import PanelCard from './PanelCard.vue'
 import { formatTime } from '../../h.js'
-import { formatEasternNavigation } from '../../section-helpers.js'
+import { formatEasternNavigation } from './panel-helpers.js'
 import {
   altitudeStatus,
   azimuthToCompass,

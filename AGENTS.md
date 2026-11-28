@@ -17,6 +17,7 @@ Every dashboard panel follows a strict 3-layer separation to enable instant Vite
    - **Environment:** Vue 3 / Browser.
    - **Responsibility:** Imports processed data from `src/formatters/` and renders the UI.
    - **Registration:** Import and register each panel in the `vuePanels` map in `src/main.js`.
+   - **Shared panel utilities:** Keep reusable display formatting and status helpers in `src/components/panels/panel-helpers.js`.
    - **Chart migrations:** Existing chart DOM/SVG helpers may remain in `src/section-helpers.js` during incremental Vue migration. A panel should own the card and mount its helper, then can gradually replace the helper with Vue/SVG template code.
 
 ## Checklist: Adding or Updating a Panel

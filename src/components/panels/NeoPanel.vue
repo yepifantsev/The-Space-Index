@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import PanelCard from './PanelCard.vue'
-import { formatCneosDate } from '../../section-helpers.js'
+import { formatCneosDate } from './panel-helpers.js'
 import { isSafeUrl } from '../../h.js'
 
 const props = defineProps({

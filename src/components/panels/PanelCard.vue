@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { isSafeUrl } from '../../h.js'
-import { formatLocationNavigation } from '../../section-helpers.js'
+import { formatLocationNavigation } from './panel-helpers.js'
 
 const props = defineProps({
   id: {

@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import PanelCard from './PanelCard.vue'
-import { formatEasternDate, formatEasternNavigation, kpColor } from '../../section-helpers.js'
+import { formatEasternDate, formatEasternNavigation, kpColor } from './panel-helpers.js'
 
 const props = defineProps({
   source: {
