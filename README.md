@@ -14,7 +14,7 @@ cross-origin requests** — they only download static files.
 | Atmosphere transparency | [7Timer!](https://www.7timer.info/) transparency | `data/atmosphere-transparency.json` |
 | Dew point spread | [Open-Meteo](https://open-meteo.com/) temperature and dew point | `data/dew-point-spread.json` |
 | Wind | [Open-Meteo](https://open-meteo.com/) wind speed | `data/wind.json` |
-| Moon timeline | [Open-Meteo](https://open-meteo.com/) rise/set times · [USNO](https://aa.usno.navy.mil/data/AltAz) altitude and lunar sky calculations | `data/moon-timeline.json` |
+| Moon timeline | [Open-Meteo](https://open-meteo.com/) rise/set times · [Astronomy Engine](https://github.com/cosinekitty/astronomy) altitude, phase, illumination, and lunar sky calculations | `data/moon-timeline.json` |
 | Visible planets | [NASA/JPL Horizons](https://ssd.jpl.nasa.gov/horizons/) location-based planet ephemerides | `data/visible-planets.json` |
 | Meteor showers & comets | [MeteorShowerCal](https://meteorshowercal.com/api/docs/) ZHR · [COBS](https://www.cobs.si/) comet magnitudes | `data/celestial-events.json` |
 | NEO close approaches | [NASA/JPL CNEOS](https://cneos.jpl.nasa.gov/ca/) close-approach data | `data/neo-close-approaches.json` |
@@ -24,12 +24,14 @@ cross-origin requests** — they only download static files.
 ## How it works
 
 ```
-scripts/sources/*.js  --(npm run fetch)-->  data/*.json  --(npm run build)-->  dist/  -->  GitHub Pages
+scripts/fetchers/*.fetcher.js  --(npm run fetch)-->  data/*.json  --(npm run build)-->  dist/  -->  GitHub Pages
 ```
 
-- `scripts/sources/` – one module per source exporting `{ name, title, attribution, fetch }`.
-  Register new sources in `scripts/sources/index.js`.
-- `scripts/fetch-data.js` – runs every source and writes `data/<name>.json`.
+- `scripts/fetchers/` – one Node fetcher module per source exporting `{ name, title, attribution, fetchRaw, formatRaw, fetch }`.
+  Register new fetchers in `scripts/fetchers/index.js`.
+- `src/formatters/` – browser-safe metadata, normalization, formatting, and calculations shared with Node.
+ A shared module can supply `title`, `attribution`, and `formatRaw`.
+- `scripts/fetch-data.js` – runs every source and writes `data/raw/<name>.json` plus `data/<name>.json`.
   If a source fails, its previous file is kept (or a placeholder is written), so a
   build never breaks because one API is down.
 - `src/` – the front end. `data/*.json` is imported at build time via

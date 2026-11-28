@@ -1,12 +1,12 @@
 import { fetchJson } from '../lib/http.js'
 import { DEFAULT_LOCATION } from '../lib/location.js'
-import { toUtcIso } from '../lib/time.js'
+import { title, attribution, formatRaw } from '../../src/formatters/wind.formatter.js'
 
 export default {
   name: 'wind',
-  title: 'Wind Forecast',
-  attribution: { label: 'Open-Meteo', url: 'https://open-meteo.com/' },
-  async fetch({ now = new Date() } = {}) {
+  title,
+  attribution,
+  async fetchRaw() {
     const lat = Number(process.env.SITE_LAT || DEFAULT_LOCATION.lat)
     const lon = Number(process.env.SITE_LON || DEFAULT_LOCATION.lon)
     const raw = await fetchJson(
@@ -14,11 +14,10 @@ export default {
       `?latitude=${lat}&longitude=${lon}` +
       '&hourly=wind_speed_10m&wind_speed_unit=mph&timezone=UTC&past_hours=24&forecast_hours=72',
     )
-    const h = raw.hourly ?? {}
-    const forecast = (h.time ?? []).map((time, i) => ({
-      time: toUtcIso(time),
-      speed: h.wind_speed_10m?.[i] ?? null,
-    })).filter((row) => row.time && Date.parse(row.time) >= now.getTime() - 24 * 3600000)
-    return { location: { lat, lon }, forecast }
+    return { location: { lat, lon }, hourly: raw.hourly ?? {} }
+  },
+  formatRaw,
+  async fetch({ now = new Date() } = {}) {
+    return formatRaw(await this.fetchRaw(), now)
   },
 }

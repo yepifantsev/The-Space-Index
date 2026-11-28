@@ -1,10 +1,10 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { mkdtemp, readFile, writeFile } from 'node:fs/promises'
+import { mkdtemp, readFile, readdir, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { runSources } from '../scripts/fetch-data.js'
-import sources from '../scripts/sources/index.js'
+import sources from '../scripts/fetchers/index.js'
 
 const fixedNow = () => new Date('2026-01-01T00:00:00Z')
 
@@ -39,6 +39,30 @@ test('writes fetched data to <name>.json', async () => {
   assert.deepEqual(json.data, { value: 42 })
 })
 
+test('writes raw data and formatted data for a split source', async () => {
+  const outDir = await tempDir()
+  const [result] = await runSources(
+    [{
+      name: 'demo',
+      title: 'Demo',
+      fetchRaw: async () => ({ value: 21 }),
+      formatRaw: (raw, { now }) => ({ value: raw.value * 2, fetchedAt: now.toISOString() }),
+      fetch: async () => ({ value: 42 }),
+    }],
+    { outDir, now: fixedNow },
+  )
+  assert.deepEqual(result, { name: 'demo', ok: true })
+  assert.deepEqual(await readJson(path.join(outDir, 'demo.json')), {
+    name: 'demo',
+    title: 'Demo',
+    attribution: null,
+    updatedAt: '2026-01-01T00:00:00.000Z',
+    error: null,
+    data: { value: 42, fetchedAt: '2026-01-01T00:00:00.000Z' },
+  })
+  assert.deepEqual(await readJson(path.join(outDir, 'raw', 'demo.json')), { value: 21 })
+})
+
 test('keeps previous data when a source fails', async () => {
   const outDir = await tempDir()
   const previous = { name: 'demo', title: 'Demo', updatedAt: 'x', error: null, data: { value: 1 } }
@@ -63,6 +87,25 @@ test('writes a placeholder when a source fails with no previous data', async () 
   assert.equal(json.data, null)
   assert.equal(json.updatedAt, null)
   assert.equal(json.error, 'boom')
+})
+
+test('fetcher modules use the .fetcher naming convention', async () => {
+  const fetcherDir = new URL('../scripts/fetchers/', import.meta.url)
+  const files = (await readdir(fetcherDir)).filter((file) => file.endsWith('.js'))
+  for (const file of files) {
+    if (file === 'index.js') continue
+    assert.match(file, /\.fetcher\.js$/, `${file} must use the .fetcher.js suffix`)
+  }
+})
+
+test('browser formatter modules contain no external fetch calls', async () => {
+  const formatterDir = new URL('../src/formatters/', import.meta.url)
+  const files = (await readdir(formatterDir)).filter((file) => file.endsWith('.js'))
+
+  for (const file of files) {
+    const source = await readFile(new URL(file, formatterDir), 'utf8')
+    assert.doesNotMatch(source, /\bfetch(?:Json|Text)?\s*\(/, `${file} must not fetch external data`)
+  }
 })
 
 test('toUtcIso normalizes offset-less UTC timestamps', async () => {

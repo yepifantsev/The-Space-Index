@@ -1,6 +1,11 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { calculateLiveMoon, azimuthToCompass, calculateZenithSkyGlow, altitudeStatus } from '../src/moon.js'
+import {
+  calculateLiveMoon,
+  azimuthToCompass,
+  calculateGeneralLunarSkyGlow,
+  altitudeStatus,
+} from '../src/formatters/moon-timeline.formatter.js'
 
 test('calculateLiveMoon returns current phase and horizontal coordinates', () => {
   const moon = calculateLiveMoon(
@@ -21,7 +26,7 @@ test('calculateLiveMoon returns current phase and horizontal coordinates', () =>
 })
 
 test('zenith sky glow returns dark sky when the Moon is below the horizon', () => {
-  assert.equal(calculateZenithSkyGlow(-12, -1), 21.5)
+  assert.equal(calculateGeneralLunarSkyGlow(0.5, -1).zenithSkySqm, 21.5)
 })
 
 test('azimuthToCompass maps bearings to the nearest cardinal direction', () => {
