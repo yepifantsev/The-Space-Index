@@ -1,6 +1,9 @@
 import './style.css'
+import { createApp } from 'vue'
 import { h } from './h.js'
 import { renderSection } from './sections.js'
+import VisiblePlanetsPanel from './components/panels/VisiblePlanetsPanel.vue'
+import SpaceWeatherPanel from './components/panels/SpaceWeatherPanel.vue'
 import {
   title as moonTitle,
   attribution as moonAttribution,
@@ -66,7 +69,23 @@ const app = document.querySelector('#app')
 if (sources.length === 0) {
   app.append(h('p', { class: 'muted' }, 'No data yet. Run `npm run fetch` to pull data, then reload.'))
 } else {
-  app.append(...sources.map(renderSection))
+  const vuePanels = {
+    'visible-planets': VisiblePlanetsPanel,
+    'space-weather': SpaceWeatherPanel,
+  }
+
+  for (const source of sources) {
+    const VuePanel = vuePanels[source.name]
+    if (!VuePanel) {
+      app.append(renderSection(source))
+      continue
+    }
+
+    const mountPoint = document.createElement('div')
+    mountPoint.className = 'vue-panel-mount'
+    app.append(mountPoint)
+    createApp(VuePanel, { source }).mount(mountPoint)
+  }
 }
 
 const moonSource = sources.find((source) => source.name === 'moon-timeline')

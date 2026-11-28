@@ -9,27 +9,12 @@ import {
   formatLaunchStatus,
   launchStatusStyle,
   formatCneosDate,
-  kpColor,
-  renderKpChart,
   renderNightSkyChart,
   renderStandaloneMetric,
 } from './section-helpers.js'
 
 // One renderer per data source (keyed by source name). Each receives the `data` field of the JSON file.
 export const renderers = {
-  'space-weather': (data) => {
-    const latest = data.latest
-    return h(
-      'div',
-      {},
-      h('span', { class: 'big big-after', style: latest ? `color: ${kpColor(latest.kp)}` : undefined }, latest ? `Kp ${latest.kp}` : 'No Kp reading'),
-      latest && h('span', { class: 'night-chart-range kp-as-of' }, `as of ${formatEasternNavigation(latest.time)}`),
-      renderKpChart(data.kp),
-      h('div', { class: 'meta' }, 'Planetary K-index readings over the last 72 hours.'),
-      h('div', { class: 'meta' }, 'The vertical line marks now; times are UTC.'),
-    )
-  },
-
   launches: (data) =>
     h(
       'ul',
@@ -158,42 +143,6 @@ export const renderers = {
       h('div', { class: 'moon-info' }, `Next phase: `, h('strong', {}, `${moon.nextPhase?.name ?? '—'} · ${moon.nextPhase?.time ? formatEasternNavigation(moon.nextPhase.time) : '—'}`)),
     )
   },
-
-  'visible-planets': (data) =>
-    h(
-      'div',
-      { class: 'dense-card-content' },
-      h(
-        'table',
-        { class: 'planet-table' },
-        h('thead', {},
-          h('tr', {},
-            h('th', { scope: 'col' }, ' '),
-            h('th', { scope: 'col' }, 'Rise / Set'),
-            h('th', { scope: 'col' }, [h('em', {}, 'm'), ' / Max']),
-            h('th', { scope: 'col' }, 'Where'),
-          ),
-        ),
-        h('tbody', {},
-          (data.planets ?? []).map((planet) =>
-            h('tr', { class: planet.aboveHorizon ? undefined : 'planet-row-muted' },
-              h('td', {}, h('span', { class: 'planet-icon', role: 'img', 'aria-label': planet.name }, planet.icon)),
-              h('td', {}, `${formatTime(planet.rise)} / ${formatTime(planet.set)}`),
-              h(
-                'td',
-                {},
-                planet.apparentMagnitude == null
-                  ? h('strong', {}, '—')
-                  : h('strong', {}, Number.isFinite(planet.apparentMagnitude) ? planet.apparentMagnitude.toFixed(1) : '—'),
-                ' / ',
-                planet.maximumElevationTime ? formatTime(planet.maximumElevationTime) : '—',
-              ),
-              h('td', {}, planet.constellation ?? '—'),
-            ),
-          ),
-        ),
-      ),
-    ),
 
   'celestial-events': (data) =>
     h(

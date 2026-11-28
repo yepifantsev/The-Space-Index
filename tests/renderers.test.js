@@ -11,14 +11,12 @@ globalThis.__SITE_TIME_ZONE__ = 'America/New_York'
 const { renderers, renderSection } = await import('../src/sections.js')
 
 const names = [
-  'space-weather',
   'launches',
   'night-forecast',
   'atmosphere-transparency',
   'dew-point-spread',
   'wind',
   'moon-timeline',
-  'visible-planets',
   'celestial-events',
   'neo-close-approaches',
   'satellites',

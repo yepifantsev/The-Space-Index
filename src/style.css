@@ -47,6 +47,10 @@ a {
   box-sizing: border-box;
 }
 
+.vue-panel-mount {
+  display: contents;
+}
+
 .card {
   width: 366px;
   height: 366px;
