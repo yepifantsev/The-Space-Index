@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.9](https://github.com/yepifantsev/The-Space-Index/compare/v1.0.8...v1.0.9) (2026-11-28)
+
+### Bug Fixes
+
+* addressing prod cache issue for Panels using cached files in old format ([d39cf32](https://github.com/yepifantsev/The-Space-Index/commit/d39cf32edb3810d7f81211fe003085aaf7aa41fd))
+
 ## [1.0.8](https://github.com/yepifantsev/The-Space-Index/compare/v1.0.7...v1.0.8) (2026-11-28)
 
 ### Bug Fixes
