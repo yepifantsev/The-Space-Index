@@ -48,6 +48,13 @@ test('reusable deploy workflow fetches and deploys Pages', async () => {
   assert.ok(workflow.jobs.deploy)
   assert.equal(workflow.jobs.deploy.needs, 'build')
   assert.equal(workflow.jobs.deploy.environment.name, 'github-pages')
+
+  const restoreStep = workflow.jobs.build.steps.find((step) => step.name === 'Restore previous data')
+  assert.match(restoreStep.with.key, /hashFiles\(/)
+  assert.match(restoreStep.with['restore-keys'], /hashFiles\(/)
+
+  const saveStep = workflow.jobs.build.steps.find((step) => step.name === 'Save data')
+  assert.equal(saveStep.with.key, restoreStep.with.key)
 })
 
 test('old combined deploy workflow is removed', async () => {
