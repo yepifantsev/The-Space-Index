@@ -96,8 +96,8 @@ for (const source of sources) {
   })
 }
 
-test('neo-close-approaches: requests a dynamic 30-day window within 0.05 AU', async () => {
-  const source = sources.find((candidate) => candidate.name === 'neo-close-approaches')
+test('neo: requests a dynamic 30-day window within 0.05 AU', async () => {
+  const source = sources.find((candidate) => candidate.name === 'neo')
   const original = globalThis.fetch
   let requestedUrl
   globalThis.fetch = async (url) => {

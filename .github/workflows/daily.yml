@@ -12,5 +12,5 @@ jobs:
       id-token: write
     uses: ./.github/workflows/reusable-deploy.yml
     with:
-      source_names: "visible-planets neo-close-approaches"
+      source_names: "visible-planets neo"
       run_label: "Daily planets and NEOs"

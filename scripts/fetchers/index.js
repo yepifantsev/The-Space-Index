@@ -4,12 +4,12 @@ import satellites from './satellites.fetcher.js'
 import news from './news.fetcher.js'
 import launches from './launches.fetcher.js'
 import moonTimeline from './moon-timeline.fetcher.js'
-import atmosphereTransparency from './atmosphere-transparency.fetcher.js'
-import dewPointSpread from './dew-point-spread.fetcher.js'
+import transparency from './transparency.fetcher.js'
+import dewPoint from './dew-point.fetcher.js'
 import wind from './wind.fetcher.js'
 import visiblePlanets from './visible-planets.fetcher.js'
 import celestialEvents from './celestial-events.fetcher.js'
-import neoCloseApproaches from './neo-close-approaches.fetcher.js'
+import neo from './neo.fetcher.js'
 
 // Add new data sources here. Each source must export { name, title, attribution, fetch }.
-export default [spaceWeather, launches, nightForecast, atmosphereTransparency, dewPointSpread, wind, moonTimeline, visiblePlanets, celestialEvents, neoCloseApproaches, satellites, news]
+export default [spaceWeather, launches, nightForecast, transparency, dewPoint, wind, moonTimeline, visiblePlanets, celestialEvents, neo, satellites, news]

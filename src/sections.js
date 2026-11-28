@@ -48,7 +48,7 @@ export const renderers = {
       renderNightSkyChart(data.forecastHours ?? data.nightHours),
     ),
 
-  'atmosphere-transparency': (data) =>
+  'transparency': (data) =>
     renderStandaloneMetric(data.forecast ?? [], {
       type: 'transparency',
       title: 'Atmosphere Transparency',
@@ -72,7 +72,7 @@ export const renderers = {
       ],
     }),
 
-  'dew-point-spread': (data) =>
+  'dew-point': (data) =>
     renderStandaloneMetric(data.forecast ?? [], {
       type: 'dew',
       title: 'Dew Point Spread',
@@ -185,7 +185,7 @@ export const renderers = {
         : h('p', { class: 'muted' }, 'No binocular-visible comets currently reported.'),
     ),
 
-  'neo-close-approaches': (data) =>
+  'neo': (data) =>
     h(
       'div',
       { class: 'dense-card-content' },
