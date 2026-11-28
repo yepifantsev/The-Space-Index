@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, ref, watch } from 'vue'
 import PanelCard from './PanelCard.vue'
-import { renderNightSkyChart } from '../../section-helpers.js'
+import { renderNightSkyChart } from './night-forecast-chart.js'
 
 const props = defineProps({
   source: {

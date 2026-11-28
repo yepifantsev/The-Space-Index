@@ -18,7 +18,7 @@ Every dashboard panel follows a strict 3-layer separation to enable instant Vite
    - **Responsibility:** Imports processed data from `src/formatters/` and renders the UI.
    - **Registration:** Import and register each panel in the `vuePanels` map in `src/main.js`.
    - **Shared panel utilities:** Keep reusable display formatting and status helpers in `src/components/panels/panel-helpers.js`.
-   - **Chart migrations:** Existing chart DOM/SVG helpers may remain in `src/section-helpers.js` during incremental Vue migration. A panel should own the card and mount its helper, then can gradually replace the helper with Vue/SVG template code.
+   - **Chart ownership:** Chart DOM/SVG implementations are panel-local: `night-forecast-chart.js` for Cloud Cover and `metric-chart.js` for transparency, dew point, and wind. Panels own the card and mount these chart modules.
 
 ## Checklist: Adding or Updating a Panel
 - Changing API endpoints or auth? -> Edit `scripts/fetchers/<name>.fetcher.js` and run `npm run fetch`.

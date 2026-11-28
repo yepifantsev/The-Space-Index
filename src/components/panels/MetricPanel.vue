@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, ref, watch } from 'vue'
 import PanelCard from './PanelCard.vue'
-import { renderStandaloneMetric } from '../../section-helpers.js'
+import { renderStandaloneMetric } from './metric-chart.js'
 
 const props = defineProps({
   source: {
