@@ -8,9 +8,6 @@ import {
   formatLocationNavigation,
   formatLaunchStatus,
   launchStatusStyle,
-  formatCneosDate,
-  renderNightSkyChart,
-  renderStandaloneMetric,
 } from './section-helpers.js'
 
 // One renderer per data source (keyed by source name). Each receives the `data` field of the JSON file.
@@ -40,75 +37,6 @@ export const renderers = {
         ),
       ),
     ),
-
-  'night-forecast': (data) =>
-    h(
-      'div',
-      {},
-      renderNightSkyChart(data.forecastHours ?? data.nightHours),
-    ),
-
-  'transparency': (data) =>
-    renderStandaloneMetric(data.forecast ?? [], {
-      type: 'transparency',
-      title: 'Atmosphere Transparency',
-      yLabel: 'Extinction (mag / air mass)',
-      min: 0.2,
-      max: 1.2,
-      ticks: [
-        { value: 0.2, label: '0.2' }, 
-        { value: 0.4, label: '0.4' }, 
-        { value: 0.6, label: '0.6' }, 
-        { value: 0.8, label: '0.8' }, 
-        { value: 1, label: '1.0' }, 
-        { value: 1.2, label: '1.2+' }
-      ],
-      legendTitle: 'Transparency',
-      legendLeft: 'Exceptional (< 0.3)',
-      legendRight: 'Very poor (> 1.0)',
-      gradient: [
-        { offset: '0%', color: '#061160' },
-        { offset: '100%', color: '#aaaaaa' },
-      ],
-    }),
-
-  'dew-point': (data) =>
-    renderStandaloneMetric(data.forecast ?? [], {
-      type: 'dew',
-      title: 'Dew Point Spread',
-      yLabel: 'Dew Point Spread',
-      max: 18,
-      ticks: [{ value: 0, label: '≤ 1°F' }, { value: 5, label: '5°F' }, { value: 11, label: '11°F' }, { value: 18, label: '> 18°F' }],
-      legendTitle: 'Dew point spread',
-      legendLeft: 'Very Dry (> 18°F)',
-      legendRight: 'Fog / Condensation (≤ 1°F)',
-      gradient: [
-        { offset: '0%', color: '#061160' },
-        { offset: '25%', color: '#4369a5' },
-        { offset: '50%', color: '#78a9c8' },
-        { offset: '75%', color: '#e6a04a' },
-        { offset: '100%', color: '#d66b63' },
-      ],
-    }),
-
-  'wind': (data) =>
-    renderStandaloneMetric(data.forecast ?? [], {
-      type: 'wind',
-      title: 'Wind',
-      yLabel: 'Wind Speed (mph)',
-      max: 20,
-      ticks: [{ value: 0, label: '0' }, { value: 5, label: '5' }, { value: 10, label: '10' }, { value: 15, label: '15' }, { value: 20, label: '20+' }],
-      legendTitle: 'Wind',
-      legendLeft: 'Calm (≤ 5 mph)',
-      legendRight: 'Strong (≥ 18 mph)',
-      gradient: [
-        { offset: '0%', color: '#061160' },
-        { offset: '25%', color: '#4369a5' },
-        { offset: '50%', color: '#78a9c8' },
-        { offset: '75%', color: '#e6a04a' },
-        { offset: '100%', color: '#d66b63' },
-      ],
-    }),
 
   'moon-timeline': (data) => {
     const moon = data.moon ?? {}
@@ -183,53 +111,6 @@ export const renderers = {
             ),
           )
         : h('p', { class: 'muted' }, 'No binocular-visible comets currently reported.'),
-    ),
-
-  'neo': (data) =>
-    h(
-      'div',
-      { class: 'dense-card-content' },
-      h(
-        'ul',
-        { class: 'compact-list custom-bullet-list' },
-        (data.approaches ?? []).map((object) =>
-          h('li', {
-            class: object.missDistanceLd < 1
-              ? 'neo-approach neo-approach-critical'
-              : object.missDistanceLd < 5
-                ? 'neo-approach neo-approach-close'
-                : 'neo-approach',
-            style: `--rock-rotation: ${(typeof object.name === 'string' && object.name.length >= 2
-              ? ((object.name.charCodeAt(object.name.length - 2) * 7) + (object.name.charCodeAt(object.name.length - 1) * 11)) % 360
-              : 0)}deg`,
-          },
-            h('span', { class: 'bullet-glyph asteroid-glyph', 'aria-hidden': 'true' }, '🪨'),
-            h('strong', {},
-              h('a', {
-                href: object.sbdbUrl,
-                target: '_blank',
-                rel: 'noopener noreferrer',
-              }, object.name),
-              h('span', { class: 'muted' }, ` · ${formatCneosDate(object.date)}`),
-            ),
-            h('div', { class: 'neo-details muted' },
-              h('span', {}, object.estimatedDiameterKm == null
-                ? '—'
-                : Number.isFinite(object.estimatedDiameterKm)
-                  ? `${Math.round(object.estimatedDiameterKm * 1000).toLocaleString()} m Ø`
-                  : '—'),
-              h('span', {}, Number.isFinite(object.relativeVelocityKph)
-                ? `${(object.relativeVelocityKph / 3600).toFixed(1)} km/s`
-                : '—'),
-              h('span', {}, Number.isFinite(object.missDistanceLd)
-                ? `${object.missDistanceLd.toFixed(1)} LD`
-                : '—'),
-            ),
-          ),
-        ),
-      ),
-      (data.approaches ?? []).length === 0 &&
-        h('p', { class: 'muted' }, 'No close approaches reported for the next 30 days.'),
     ),
 
   satellites: (data) =>

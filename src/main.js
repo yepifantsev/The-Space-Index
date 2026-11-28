@@ -4,6 +4,11 @@ import { h } from './h.js'
 import { renderSection } from './sections.js'
 import VisiblePlanetsPanel from './components/panels/VisiblePlanetsPanel.vue'
 import SpaceWeatherPanel from './components/panels/SpaceWeatherPanel.vue'
+import TransparencyPanel from './components/panels/TransparencyPanel.vue'
+import DewPointPanel from './components/panels/DewPointPanel.vue'
+import NeoPanel from './components/panels/NeoPanel.vue'
+import WindPanel from './components/panels/WindPanel.vue'
+import NightForecastPanel from './components/panels/NightForecastPanel.vue'
 import {
   title as moonTitle,
   attribution as moonAttribution,
@@ -72,6 +77,11 @@ if (sources.length === 0) {
   const vuePanels = {
     'visible-planets': VisiblePlanetsPanel,
     'space-weather': SpaceWeatherPanel,
+    'transparency': TransparencyPanel,
+    'dew-point': DewPointPanel,
+    'neo': NeoPanel,
+    wind: WindPanel,
+    'night-forecast': NightForecastPanel,
   }
 
   for (const source of sources) {
