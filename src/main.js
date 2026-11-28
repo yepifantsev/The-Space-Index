@@ -108,3 +108,17 @@ function updateLocationTime() {
 
 updateLocationTime()
 setInterval(updateLocationTime, 30 * 1000)
+
+document.addEventListener('click', (e) => {
+  const el = e.target.closest('.reveal-email');
+  
+  if (el && el.dataset.contact) {
+    e.preventDefault();
+    
+    const email = atob(el.dataset.contact);
+    el.href = `mailto:${email}`;
+    el.textContent = email;
+    
+    delete el.dataset.contact;
+  }
+});
