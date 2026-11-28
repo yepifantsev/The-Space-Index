@@ -40,8 +40,11 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: data/*.json
-          key: space-data-${{ runner.os }}-${{ hashFiles('scripts/fetchers/index.js', 'scripts/fetchers/*.fetcher.js', 'src/formatters/*.formatter.js') }}-${{ github.run_id }}
-          restore-keys: space-data-${{ runner.os }}-${{ hashFiles('scripts/fetchers/index.js', 'scripts/fetchers/*.fetcher.js', 'src/formatters/*.formatter.js') }}-
+          key: space-data-${{ github.run_id }}
+          restore-keys: space-data-
+
+      - name: Remove stale generated data
+        run: npm run clean-data
 
       - name: Report source group
         env:
@@ -67,7 +70,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: data/*.json
-          key: space-data-${{ runner.os }}-${{ hashFiles('scripts/fetchers/index.js', 'scripts/fetchers/*.fetcher.js', 'src/formatters/*.formatter.js') }}-${{ github.run_id }}
+          key: space-data-${{ github.run_id }}
 
       - id: pages
         uses: actions/configure-pages@v5

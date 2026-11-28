@@ -1,6 +1,6 @@
 {
   "name": "the-space-index",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "private": true,
   "type": "module",
   "engines": {
@@ -11,6 +11,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "fetch": "node --env-file-if-exists=.env scripts/fetch-data.js",
+    "clean-data": "node scripts/clean-data.js",
     "test": "node --test",
     "release": "release-it"
   },
