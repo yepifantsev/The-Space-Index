@@ -1,10 +1,11 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { mkdtemp, readFile, readdir, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readFile, readdir, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { runSources } from '../scripts/fetch-data.js'
 import sources from '../scripts/fetchers/index.js'
+import { cleanGeneratedData } from '../scripts/clean-data.js'
 
 const fixedNow = () => new Date('2026-01-01T00:00:00Z')
 
@@ -96,6 +97,24 @@ test('fetcher modules use the .fetcher naming convention', async () => {
     if (file === 'index.js') continue
     assert.match(file, /\.fetcher\.js$/, `${file} must use the .fetcher.js suffix`)
   }
+})
+
+test('cleanGeneratedData removes renamed stale payloads and raw payloads', async () => {
+  const outDir = await tempDir()
+  await mkdir(path.join(outDir, 'raw'), { recursive: true })
+  await writeFile(path.join(outDir, 'old-source.json'), '{}')
+  await writeFile(path.join(outDir, 'current.json'), '{}')
+  await writeFile(path.join(outDir, 'raw', 'old-source.json'), '{}')
+
+  const removed = await cleanGeneratedData({
+    dataDir: outDir,
+    sources: [{ name: 'current' }],
+  })
+
+  assert.deepEqual(removed.sort(), ['old-source.json', 'raw/old-source.json'].sort())
+  await assert.rejects(readFile(path.join(outDir, 'old-source.json')))
+  await assert.rejects(readFile(path.join(outDir, 'raw', 'old-source.json')))
+  assert.equal((await readJson(path.join(outDir, 'current.json'))).constructor, Object)
 })
 
 test('browser formatter modules contain no external fetch calls', async () => {
