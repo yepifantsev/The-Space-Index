@@ -1,21 +1,33 @@
 import './style.css'
+import { createApp } from 'vue'
 import { h } from './h.js'
-import { renderSection } from './sections.js'
+import VisiblePlanetsPanel from './components/panels/VisiblePlanetsPanel.vue'
+import SpaceWeatherPanel from './components/panels/SpaceWeatherPanel.vue'
+import TransparencyPanel from './components/panels/TransparencyPanel.vue'
+import DewPointPanel from './components/panels/DewPointPanel.vue'
+import NeoPanel from './components/panels/NeoPanel.vue'
+import WindPanel from './components/panels/WindPanel.vue'
+import NightForecastPanel from './components/panels/NightForecastPanel.vue'
+import LaunchesPanel from './components/panels/LaunchesPanel.vue'
+import MoonTimelinePanel from './components/panels/MoonTimelinePanel.vue'
+import CelestialEventsPanel from './components/panels/CelestialEventsPanel.vue'
+import SatellitesPanel from './components/panels/SatellitesPanel.vue'
+import NewsPanel from './components/panels/NewsPanel.vue'
+import UnknownSourcePanel from './components/panels/UnknownSourcePanel.vue'
 import {
   title as moonTitle,
   attribution as moonAttribution,
   formatMoonTimeline,
-  updateLiveMoonCard,
 } from './formatters/moon-timeline.formatter.js'
 import * as spaceWeatherSource from './formatters/space-weather.formatter.js'
 import * as nightForecastSource from './formatters/night-forecast.formatter.js'
-import * as atmosphereTransparencySource from './formatters/atmosphere-transparency.formatter.js'
-import * as dewPointSpreadSource from './formatters/dew-point-spread.formatter.js'
+import * as transparencySource from './formatters/transparency.formatter.js'
+import * as dewPointSource from './formatters/dew-point.formatter.js'
 import * as windSource from './formatters/wind.formatter.js'
 import * as launchesSource from './formatters/launches.formatter.js'
 import * as visiblePlanetsSource from './formatters/visible-planets.formatter.js'
 import * as celestialEventsSource from './formatters/celestial-events.formatter.js'
-import * as neoCloseApproachesSource from './formatters/neo-close-approaches.formatter.js'
+import * as neoSource from './formatters/neo.formatter.js'
 import * as newsSource from './formatters/news.formatter.js'
 import * as satellitesSource from './formatters/satellites.formatter.js'
 
@@ -23,7 +35,7 @@ import * as satellitesSource from './formatters/satellites.formatter.js'
 // so visitors never make requests to third-party APIs.
 const modules = import.meta.glob('../data/*.json', { eager: true, import: 'default' })
 const rawModules = import.meta.glob('../data/raw/*.json', { eager: true, import: 'default' })
-const order = ['night-forecast', 'wind', 'dew-point-spread', 'space-weather', 'atmosphere-transparency', 'moon-timeline', 'visible-planets', 'celestial-events', 'neo-close-approaches', 'launches', 'satellites', 'news']
+const order = ['night-forecast', 'wind', 'dew-point', 'space-weather', 'transparency', 'moon-timeline', 'visible-planets', 'celestial-events', 'neo', 'launches', 'satellites', 'news']
 const rank = (name) => (order.includes(name) ? order.indexOf(name) : order.length)
 const sources = Object.values(modules).sort(
   (a, b) => rank(a.name) - rank(b.name) || String(a.name).localeCompare(String(b.name)),
@@ -37,13 +49,13 @@ const sharedSources = {
   },
   'space-weather': spaceWeatherSource,
   'night-forecast': nightForecastSource,
-  'atmosphere-transparency': atmosphereTransparencySource,
-  'dew-point-spread': dewPointSpreadSource,
+  'transparency': transparencySource,
+  'dew-point': dewPointSource,
   'wind': windSource,
   launches: launchesSource,
   'visible-planets': visiblePlanetsSource,
   'celestial-events': celestialEventsSource,
-  'neo-close-approaches': neoCloseApproachesSource,
+  'neo': neoSource,
   news: newsSource,
   satellites: {
     title: satellitesSource.title,
@@ -66,19 +78,28 @@ const app = document.querySelector('#app')
 if (sources.length === 0) {
   app.append(h('p', { class: 'muted' }, 'No data yet. Run `npm run fetch` to pull data, then reload.'))
 } else {
-  app.append(...sources.map(renderSection))
-}
+  const vuePanels = {
+    'visible-planets': VisiblePlanetsPanel,
+    'space-weather': SpaceWeatherPanel,
+    'transparency': TransparencyPanel,
+    'dew-point': DewPointPanel,
+    'neo': NeoPanel,
+    wind: WindPanel,
+    'night-forecast': NightForecastPanel,
+    launches: LaunchesPanel,
+    'moon-timeline': MoonTimelinePanel,
+    'celestial-events': CelestialEventsPanel,
+    satellites: SatellitesPanel,
+    news: NewsPanel,
+  }
 
-const moonSource = sources.find((source) => source.name === 'moon-timeline')
-if (moonSource?.data?.location) {
-  const moonCard = document.querySelector('#moon-timeline')
-  const refreshLiveMoon = () => updateLiveMoonCard(
-    moonCard,
-    moonSource.data.location.lat,
-    moonSource.data.location.lon,
-  )
-  refreshLiveMoon()
-  setInterval(refreshLiveMoon, 60 * 1000)
+  for (const source of sources) {
+    const VuePanel = vuePanels[source.name] ?? UnknownSourcePanel
+    const mountPoint = document.createElement('div')
+    mountPoint.className = 'vue-panel-mount'
+    app.append(mountPoint)
+    createApp(VuePanel, { source }).mount(mountPoint)
+  }
 }
 
 document.querySelector('#build-time').textContent =
@@ -108,3 +129,17 @@ function updateLocationTime() {
 
 updateLocationTime()
 setInterval(updateLocationTime, 30 * 1000)
+
+document.addEventListener('click', (e) => {
+  const el = e.target.closest('.reveal-email');
+  
+  if (el && el.dataset.contact) {
+    e.preventDefault();
+    
+    const email = atob(el.dataset.contact);
+    el.href = `mailto:${email}`;
+    el.textContent = email;
+    
+    delete el.dataset.contact;
+  }
+});

@@ -1,19 +1,20 @@
 import { fetchJson } from '../lib/http.js'
 import { DEFAULT_LOCATION } from '../lib/location.js'
-import { title, attribution, formatRaw } from '../../src/formatters/atmosphere-transparency.formatter.js'
+import { title, attribution, formatRaw } from '../../src/formatters/dew-point.formatter.js'
 
 export default {
-  name: 'atmosphere-transparency',
+  name: 'dew-point',
   title,
   attribution,
   async fetchRaw() {
     const lat = Number(process.env.SITE_LAT || DEFAULT_LOCATION.lat)
     const lon = Number(process.env.SITE_LON || DEFAULT_LOCATION.lon)
-    const data = await fetchJson(
-      'https://www.7timer.info/bin/api.pl' +
-      `?lon=${lon}&lat=${lat}&product=astro&output=json`,
+    const raw = await fetchJson(
+      'https://api.open-meteo.com/v1/forecast' +
+      `?latitude=${lat}&longitude=${lon}` +
+      '&hourly=temperature_2m,dew_point_2m&temperature_unit=celsius&timezone=UTC&past_hours=24&forecast_hours=72',
     )
-    return { ...data, location: { lat, lon } }
+    return { location: { lat, lon }, hourly: raw.hourly ?? {} }
   },
   formatRaw,
   async fetch({ now = new Date() } = {}) {

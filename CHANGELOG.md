@@ -1,5 +1,31 @@
 # Changelog
 
+## [1.0.8](https://github.com/yepifantsev/The-Space-Index/compare/v1.0.7...v1.0.8) (2026-11-28)
+
+### Bug Fixes
+
+* removed raw email from description ([a6d3b02](https://github.com/yepifantsev/The-Space-Index/commit/a6d3b02fbc67fddb2d0b06f86c71b4c01821da60))
+
+### Code Refactoring
+
+* cleanup mostly complete, aside from shared JS helpers ([c9fd10f](https://github.com/yepifantsev/The-Space-Index/commit/c9fd10f4a9663383961bec3bfb35cc01367c82f6))
+* final refactor with split of remaining section-helpers info files more closely related to panels they serve ([07ac1b2](https://github.com/yepifantsev/The-Space-Index/commit/07ac1b2351d52e537ed54e62b9dd17282c1026e4))
+* pilot conversion of 2 cards to confirm the process works ([6584be4](https://github.com/yepifantsev/The-Space-Index/commit/6584be44ad7631ecdbadf064bbc60512adc67d90))
+* preparing for Panels rafactor into Vue ([0017e46](https://github.com/yepifantsev/The-Space-Index/commit/0017e46967c05d89e20ec3000358f1246a8a937d))
+* refactored all panels with charts to Vue components ([6b1760d](https://github.com/yepifantsev/The-Space-Index/commit/6b1760d630f2208e55e0c8261221f8ad537d8a4f))
+* refactored the rest of sections to Panels ([2eaa771](https://github.com/yepifantsev/The-Space-Index/commit/2eaa771d1e3f709bcbf1a8d517afc7e5f95a0e9e))
+* renamed a few sections across the codebase ([4f4d45f](https://github.com/yepifantsev/The-Space-Index/commit/4f4d45f0672acc3b24c90ab11ae29308fc66b5c5))
+* split panel helper functions out of section-helpers.js into panel-helpers.js ([a236728](https://github.com/yepifantsev/The-Space-Index/commit/a236728177c42f5ad6651a2a5b55b76a399abce0))
+
+### Miscellaneous Chores
+
+* release v1.0.7 ([88c0398](https://github.com/yepifantsev/The-Space-Index/commit/88c0398582e7eecaed384b701e690fd5c06cae3d))
+* **release:** include refactor commits in changelog and auto-add CHANGELOG.md manual changes ([f7743da](https://github.com/yepifantsev/The-Space-Index/commit/f7743da7170750a251a3fdbe138d3afa951a2b6a))
+
+### Build System
+
+* add Vue runtime and Vite Vue plugin ([38b900a](https://github.com/yepifantsev/The-Space-Index/commit/38b900ae6c7293c2639e8232694f85da8ed2c528))
+
 ## [1.0.7](https://github.com/yepifantsev/The-Space-Index/compare/v1.0.6...v1.0.7) (2026-11-27)
 
 ### Bug Fixes

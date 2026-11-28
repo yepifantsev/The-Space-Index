@@ -47,6 +47,10 @@ a {
   box-sizing: border-box;
 }
 
+.vue-panel-mount {
+  display: contents;
+}
+
 .card {
   width: 366px;
   height: 366px;
@@ -67,8 +71,8 @@ a {
   padding-right: 0.25rem;
 }
 
-#atmosphere-transparency .card-body,
-#dew-point-spread .card-body,
+#transparency .card-body,
+#dew-point .card-body,
 #wind .card-body {
   overflow: hidden;
 }

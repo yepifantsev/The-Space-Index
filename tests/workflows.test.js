@@ -11,11 +11,11 @@ async function readWorkflow(name) {
 }
 
 const dispatchFiles = [
-  ['hourly.yml', 'night-forecast dew-point-spread wind', 'Hourly weather'],
-  ['three-hour.yml', 'space-weather atmosphere-transparency', '3-hour weather'],
+  ['hourly.yml', 'night-forecast dew-point wind', 'Hourly weather'],
+  ['three-hour.yml', 'space-weather transparency', '3-hour weather'],
   ['six-hour.yml', 'launches satellites news', '6-hour launches and satellites'],
   ['twelve-hour.yml', 'moon-timeline celestial-events', '12-hour moon and meteors'],
-  ['daily.yml', 'visible-planets neo-close-approaches', 'Daily planets and NEOs'],
+  ['daily.yml', 'visible-planets neo', 'Daily planets and NEOs'],
 ]
 
 test('each externally scheduled workflow uses manual dispatch and one source group', async () => {

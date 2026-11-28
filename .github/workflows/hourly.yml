@@ -12,5 +12,5 @@ jobs:
       id-token: write
     uses: ./.github/workflows/reusable-deploy.yml
     with:
-      source_names: "night-forecast dew-point-spread wind"
+      source_names: "night-forecast dew-point wind"
       run_label: "Hourly weather"

@@ -12,5 +12,5 @@ jobs:
       id-token: write
     uses: ./.github/workflows/reusable-deploy.yml
     with:
-      source_names: "space-weather atmosphere-transparency"
+      source_names: "space-weather transparency"
       run_label: "3-hour weather"

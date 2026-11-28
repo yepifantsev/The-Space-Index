@@ -1,8 +1,8 @@
 import { fetchJson } from '../lib/http.js'
-import { title, attribution, formatRaw } from '../../src/formatters/neo-close-approaches.formatter.js'
+import { title, attribution, formatRaw } from '../../src/formatters/neo.formatter.js'
 
 export default {
-  name: 'neo-close-approaches',
+  name: 'neo',
   title,
   attribution,
   async fetchRaw({ now = new Date() } = {}) {
