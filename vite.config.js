@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite'
 import { readFileSync } from 'node:fs'
+import vue from '@vitejs/plugin-vue'
 
 const packageJson = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8'))
 const normalizeLocationName = (value) =>
@@ -8,6 +9,7 @@ const normalizeTimeZone = (value) =>
   value == null ? 'America/New_York' : String(value).replace(/^["']|["']$/g, '').trim()
 
 export default defineConfig({
+  plugins: [vue()],
   // GitHub Pages project sites are served from /<repo>/. The deploy workflow sets BASE_PATH.
   base: process.env.BASE_PATH || '/',
   define: {
