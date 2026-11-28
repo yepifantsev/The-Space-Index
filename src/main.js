@@ -9,11 +9,15 @@ import DewPointPanel from './components/panels/DewPointPanel.vue'
 import NeoPanel from './components/panels/NeoPanel.vue'
 import WindPanel from './components/panels/WindPanel.vue'
 import NightForecastPanel from './components/panels/NightForecastPanel.vue'
+import LaunchesPanel from './components/panels/LaunchesPanel.vue'
+import MoonTimelinePanel from './components/panels/MoonTimelinePanel.vue'
+import CelestialEventsPanel from './components/panels/CelestialEventsPanel.vue'
+import SatellitesPanel from './components/panels/SatellitesPanel.vue'
+import NewsPanel from './components/panels/NewsPanel.vue'
 import {
   title as moonTitle,
   attribution as moonAttribution,
   formatMoonTimeline,
-  updateLiveMoonCard,
 } from './formatters/moon-timeline.formatter.js'
 import * as spaceWeatherSource from './formatters/space-weather.formatter.js'
 import * as nightForecastSource from './formatters/night-forecast.formatter.js'
@@ -82,6 +86,11 @@ if (sources.length === 0) {
     'neo': NeoPanel,
     wind: WindPanel,
     'night-forecast': NightForecastPanel,
+    launches: LaunchesPanel,
+    'moon-timeline': MoonTimelinePanel,
+    'celestial-events': CelestialEventsPanel,
+    satellites: SatellitesPanel,
+    news: NewsPanel,
   }
 
   for (const source of sources) {
@@ -96,18 +105,6 @@ if (sources.length === 0) {
     app.append(mountPoint)
     createApp(VuePanel, { source }).mount(mountPoint)
   }
-}
-
-const moonSource = sources.find((source) => source.name === 'moon-timeline')
-if (moonSource?.data?.location) {
-  const moonCard = document.querySelector('#moon-timeline')
-  const refreshLiveMoon = () => updateLiveMoonCard(
-    moonCard,
-    moonSource.data.location.lat,
-    moonSource.data.location.lon,
-  )
-  refreshLiveMoon()
-  setInterval(refreshLiveMoon, 60 * 1000)
 }
 
 document.querySelector('#build-time').textContent =

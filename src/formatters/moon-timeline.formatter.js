@@ -199,25 +199,3 @@ function calculateLiveZenithSkyGlow(apparentMag, moonAltitude, options = {}) {
   return (20.7233 - Math.log((darkBrightness + moonBrightness) / 34.08)) / 0.92104
 }
 
-export function updateLiveMoonCard(card, lat, lon, now = new Date()) {
-  if (!card) return
-
-  const moon = calculateLiveMoon(lat, lon, now)
-  const glyph = card.querySelector('.moon-glyph')
-  const name = card.querySelector('.moon-name')
-  const illumination = card.querySelector('.moon-illumination')
-  const altitude = card.querySelector('.moon-altitude')
-  const azimuth = card.querySelector('.moon-azimuth')
-  const apparentMag = card.querySelector('.moon-apparent-magnitude')
-  const zenithSkySqm = card.querySelector('.moon-sky-glow')
-
-  glyph.textContent = moon.glyph
-  glyph.setAttribute('aria-label', moon.name)
-  name.textContent = moon.name
-  illumination.textContent = `${moon.illumination}% illuminated`
-  altitude.textContent = `${moon.altitude.toFixed(1)}° (${altitudeStatus(moon.altitude)})`
-  altitude.classList.toggle('muted', !moon.aboveHorizon)
-  azimuth.textContent = `${moon.azimuth.toFixed(1)}° (${azimuthToCompass(moon.azimuth)})`
-  apparentMag.textContent = moon.apparentMag.toFixed(2)
-  zenithSkySqm.textContent = `${moon.zenithSkySqm.toFixed(2)} mag/arcsec²`
-}
