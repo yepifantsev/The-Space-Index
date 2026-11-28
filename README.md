@@ -35,7 +35,8 @@ scripts/fetchers/*.fetcher.js  --(npm run fetch)-->  data/*.json  --(npm run bui
   If a source fails, its previous file is kept (or a placeholder is written), so a
   build never breaks because one API is down.
 - `src/` – the front end. `data/*.json` is imported at build time via
-  `import.meta.glob`, and each section has a renderer in `src/sections.js`.
+  `import.meta.glob`, and each panel is rendered by a Vue component in
+  `src/components/panels/`.
 - `data/*.json` is generated and git-ignored.
 
 ## Local development (Docker)

@@ -13,9 +13,11 @@ Every dashboard panel follows a strict 3-layer separation to enable instant Vite
    - **Responsibility:** Imports raw JSON from `data/raw/<name>.json`, applies business logic, calculations, and UI copy/labels.
    - **Rules:** Must be pure JavaScript (no `fs`, `path`, `process.env`, or Node built-ins) so Vite can hot-reload changes immediately.
 
-3. **Presentation Layer - currently ASPIRATIONAL (`src/components/panels/*Panel.vue`)**
+3. **Presentation Layer (`src/components/panels/*Panel.vue`)**
    - **Environment:** Vue 3 / Browser.
    - **Responsibility:** Imports processed data from `src/formatters/` and renders the UI.
+   - **Registration:** Import and register each panel in the `vuePanels` map in `src/main.js`.
+   - **Chart migrations:** Existing chart DOM/SVG helpers may remain in `src/section-helpers.js` during incremental Vue migration. A panel should own the card and mount its helper, then can gradually replace the helper with Vue/SVG template code.
 
 ## Checklist: Adding or Updating a Panel
 - Changing API endpoints or auth? -> Edit `scripts/fetchers/<name>.fetcher.js` and run `npm run fetch`.

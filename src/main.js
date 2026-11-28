@@ -1,7 +1,6 @@
 import './style.css'
 import { createApp } from 'vue'
 import { h } from './h.js'
-import { renderSection } from './sections.js'
 import VisiblePlanetsPanel from './components/panels/VisiblePlanetsPanel.vue'
 import SpaceWeatherPanel from './components/panels/SpaceWeatherPanel.vue'
 import TransparencyPanel from './components/panels/TransparencyPanel.vue'
@@ -14,6 +13,7 @@ import MoonTimelinePanel from './components/panels/MoonTimelinePanel.vue'
 import CelestialEventsPanel from './components/panels/CelestialEventsPanel.vue'
 import SatellitesPanel from './components/panels/SatellitesPanel.vue'
 import NewsPanel from './components/panels/NewsPanel.vue'
+import UnknownSourcePanel from './components/panels/UnknownSourcePanel.vue'
 import {
   title as moonTitle,
   attribution as moonAttribution,
@@ -94,12 +94,7 @@ if (sources.length === 0) {
   }
 
   for (const source of sources) {
-    const VuePanel = vuePanels[source.name]
-    if (!VuePanel) {
-      app.append(renderSection(source))
-      continue
-    }
-
+    const VuePanel = vuePanels[source.name] ?? UnknownSourcePanel
     const mountPoint = document.createElement('div')
     mountPoint.className = 'vue-panel-mount'
     app.append(mountPoint)
